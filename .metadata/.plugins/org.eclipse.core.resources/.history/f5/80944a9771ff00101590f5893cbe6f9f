@@ -1,0 +1,68 @@
+package com.example.demo.controller;
+import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.OtpRequest;
+import com.example.demo.entity.*;
+import com.example.demo.repositories.*;
+import com.example.demo.service.*;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import java.math.BigDecimal;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:4200")
+public class MainController {
+	@Autowired
+	private AuthService authService;
+	@Autowired
+	private TransferService transferService;
+	@Autowired
+	private AccountRepository accountRepo;
+	@Autowired
+	private TransactionRepository txnRepo;
+
+//	@PostMapping("/login")
+//	public User verify(@RequestParam String username, @RequestParam String otp) {
+//		return authService.verifyOtp(username, otp);
+//	}
+	@PostMapping("/login")
+	public String login(@RequestBody LoginRequest request) {
+		return authService.login(request.getUsername(), request.getPassword());
+	}
+	
+	@PostMapping("/verify")
+	public User verify(@RequestBody OtpRequest request) {
+		return authService.verifyOtp(request.getUsername(), request.getOtp());
+	}
+
+	@GetMapping("/accounts/{userId}")
+	public Account getAccount(@PathVariable("userId") Long userId) {
+		return accountRepo.findByUserId(userId).orElseThrow();
+	}
+
+	@GetMapping("/history/{accountId}")
+	public List<TransactionLog> getHistory(@PathVariable("accountId") Long accountId) {
+		return txnRepo.findBySourceAccountIdOrTargetAccountId(accountId, accountId);
+	}
+
+	@GetMapping("/owner/all-transactions")
+	public List<TransactionLog> getAll() {
+		return txnRepo.findAll();
+	}
+
+	@GetMapping("/transfer")
+	public TransactionLog transfer(@RequestBody TransferDTO req) {
+		return transferService.transfer(req.sourceId, req.targetId, req.amount, req.key);
+	}
+
+	@Data
+	class TransferDTO {
+		Long sourceId;
+		Long targetId;
+		BigDecimal amount;
+		String key;
+	}
+
+}

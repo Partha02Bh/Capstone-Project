@@ -1,0 +1,6 @@
+package com.example.demo.entity;
+
+import com.example.demo.enums.AccountStatus;
+public class Account {
+
+}

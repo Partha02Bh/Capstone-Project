@@ -1,0 +1,105 @@
+package com.example.demo.controller;
+
+import com.example.demo.entity.Account;
+import com.example.demo.entity.TransactionLog;
+import com.example.demo.entity.User; // 
+import com.example.demo.enums.TransactionStatus;
+import com.example.demo.repositories.AccountRepository;
+import com.example.demo.repositories.TransactionLogRepository;
+import com.example.demo.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/transactions")
+public class TransactionController {
+
+	@Autowired
+	private AccountRepository accountRepo;
+
+	@Autowired
+	private UserRepository userRepo;
+
+	@Autowired
+	private TransactionLogRepository transactionLogRepo;
+
+	@PostMapping("/deposit")
+	public ResponseEntity<?> deposit(@RequestBody Map<String, String> request) {
+		Long userId = Long.parseLong(request.get("userId"));
+		BigDecimal amount = new BigDecimal(request.get("amount"));
+
+		Account account = accountRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("Account not found"));
+
+		account.setBalance(account.getBalance().add(amount));
+		accountRepo.save(account);
+
+		logTransaction(account, amount, "DEPOSIT", null);
+
+		return ResponseEntity.ok("Deposit Successful");
+	}
+
+	@PostMapping("/withdraw")
+	public ResponseEntity<?> withdraw(@RequestBody Map<String, String> request) {
+		Long userId = Long.parseLong(request.get("userId"));
+		BigDecimal amount = new BigDecimal(request.get("amount"));
+
+		Account account = accountRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("Account not found"));
+
+		if (account.getBalance().compareTo(amount) < 0) {
+			return ResponseEntity.badRequest().body("Insufficient Funds");
+		}
+
+		account.setBalance(account.getBalance().subtract(amount));
+		accountRepo.save(account);
+
+		logTransaction(account, amount.negate(), "WITHDRAW", null);
+
+		return ResponseEntity.ok("Withdrawal Successful");
+	}
+
+	@PostMapping("/transfer")
+	public ResponseEntity<?> transfer(@RequestBody Map<String, String> request) {
+		Long sourceUserId = Long.parseLong(request.get("sourceId"));
+		Long targetUserId = Long.parseLong(request.get("targetId"));
+		BigDecimal amount = new BigDecimal(request.get("amount"));
+
+		Account sourceAccount = accountRepo.findByUserId(sourceUserId)
+				.orElseThrow(() -> new RuntimeException("Sender Account not found"));
+
+		Account targetAccount = accountRepo.findByUserId(targetUserId)
+				.orElseThrow(() -> new RuntimeException("Receiver Account not found"));
+
+		if (sourceAccount.getBalance().compareTo(amount) < 0) {
+			return ResponseEntity.badRequest().body("Insufficient Funds");
+		}
+
+		sourceAccount.setBalance(sourceAccount.getBalance().subtract(amount));
+		targetAccount.setBalance(targetAccount.getBalance().add(amount));
+
+		accountRepo.save(sourceAccount);
+		accountRepo.save(targetAccount);
+
+		logTransaction(sourceAccount, amount.negate(), "TRANSFER_OUT", targetAccount.getId());
+		logTransaction(targetAccount, amount, "TRANSFER_IN", sourceAccount.getId());
+
+		return ResponseEntity.ok("Transfer Successful");
+	}
+
+	private void logTransaction(Account account, BigDecimal amount, String type, Long relatedAccountId) {
+		TransactionLog log = new TransactionLog();
+		log.setAccountId(account.getId());
+		log.setAmount(amount);
+		log.setTransactionType(type);
+		log.setTimestamp(LocalDateTime.now());
+		log.setRelatedAccountId(relatedAccountId);
+
+		transactionLogRepo.save(log);
+
+		System.out.println("LOG SAVED: " + type + " | " + amount);
+	}
+}

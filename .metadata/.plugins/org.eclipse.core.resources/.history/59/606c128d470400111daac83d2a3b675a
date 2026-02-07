@@ -1,0 +1,10 @@
+package com.example.demo.repositories;
+
+import com.example.demo.entity.TransactionLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional; // Import Optional
+
+public interface TransactionLogRepository extends JpaRepository<TransactionLog, Long> {
+    // Finds a transaction by its unique key
+    Optional<TransactionLog> findByIdempotencyKey(String idempotencyKey);
+}

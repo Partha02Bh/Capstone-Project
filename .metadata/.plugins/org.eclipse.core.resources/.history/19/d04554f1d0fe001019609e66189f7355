@@ -1,0 +1,17 @@
+package com.example.demo.entity;
+
+import jarkarta.persistance.*;
+import lombok.Data;
+import java,time,LocalDateTime;
+
+@Entity @Data @Table(name="users")
+public class User {
+	@Id @GeneratedValue(strategy = Generationtype.IDENTIFY)
+	private Long id;
+	private String username;
+	private String password;
+	private String role;
+	private String otpCode;
+	private LocalDateTime otpExpiry;
+
+}

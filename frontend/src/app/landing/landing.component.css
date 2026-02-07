@@ -1,0 +1,61 @@
+.landing-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffffff 50%, #eef2f3 50%);
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 50px;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.logo { font-size: 24px; font-weight: bold; color: var(--primary); }
+
+.btn-login { text-decoration: none; color: var(--text-dark); margin-right: 20px; font-weight: 600; }
+.btn-register { text-decoration: none; padding: 10px 20px; background: var(--primary); color: white; border-radius: 20px; }
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 80px 100px;
+}
+
+.hero-content h1 { font-size: 48px; margin-bottom: 20px; }
+.highlight { color: var(--secondary); }
+.hero-content p { font-size: 18px; color: #666; margin-bottom: 30px; max-width: 500px; }
+
+.cta-btn {
+  padding: 15px 40px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  font-size: 18px;
+  border-radius: 30px;
+  box-shadow: 0 4px 15px rgba(255, 165, 0, 0.4);
+}
+.cta-btn:hover { transform: translateY(-3px); }
+
+/* Card Graphic */
+.card-graphic {
+  width: 300px; height: 180px;
+  background: linear-gradient(135deg, #0056b3, #00a8cc);
+  border-radius: 15px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 86, 179, 0.3);
+  color: white; padding: 20px;
+}
+.chip { width: 40px; height: 30px; background: #ffd700; border-radius: 5px; margin-bottom: 40px; }
+.card-number { font-size: 22px; letter-spacing: 2px; margin-bottom: 20px; }
+.card-name { font-size: 14px; text-transform: uppercase; }
+
+.features {
+  display: flex; justify-content: center; gap: 30px; padding: 50px;
+}
+.feature-card {
+  background: white; padding: 30px; border-radius: 10px;
+  box-shadow: var(--shadow); text-align: center; width: 250px;
+}

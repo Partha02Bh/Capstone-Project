@@ -1,0 +1,42 @@
+package com.example.demo.config;
+
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+@Component
+public class DataSeeder implements CommandLineRunner {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Override
+    public void run(String... args) throws Exception {
+        // 1. Fix Admin
+        if (userRepository.findByUsername("admin").isPresent()) {
+            User admin = userRepository.findByUsername("admin").get();
+            // If password is plain text (not hashed yet), encrypt it
+            if (!admin.getPassword().startsWith("$2a$")) {
+                admin.setPassword(passwordEncoder.encode("admin123"));
+                userRepository.save(admin);
+                System.out.println("--> Admin password encrypted!");
+            }
+        }
+
+        // 2. Fix John
+        if (userRepository.findByUsername("john").isPresent()) {
+            User john = userRepository.findByUsername("john").get();
+            if (!john.getPassword().startsWith("$2a$")) {
+                john.setPassword(passwordEncoder.encode("john123"));
+                userRepository.save(john);
+                System.out.println("--> John's password encrypted!");
+            }
+        }
+    }
+}

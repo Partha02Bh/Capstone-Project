@@ -1,0 +1,26 @@
+package com.example.demo.entity;
+
+import com.example.demo.enums.AccountStatus;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.math.BigDecimal;
+
+@Entity @Data @Table(name="accounts")
+public class Account {
+	@Id @GeneratedValue(stategy = GenerationType.IDENTITY)
+	private Long id;
+	private String accountNumber;
+	private BigDecimal balance;
+	@Enumerated(EnumType.STRING)
+	private AccountStatus status;
+	@OneToOne @JoinColumn(name="user_id")
+	private User user;
+	
+	
+	//BUSINESS LOGIC METHODS FOR CREDIT AND DEBIT 
+	
+	public void credit(BigDecimal amount) {
+		this.balance = this.balance.add(amount);
+	}
+}

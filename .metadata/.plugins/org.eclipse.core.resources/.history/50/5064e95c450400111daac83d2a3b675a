@@ -1,0 +1,11 @@
+package com.example.demo.repositories;
+
+import com.example.demo.entity.TransactionLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface TransactionLogRepository extends JpaRepository<TransactionLog, Long> {
+    // This will allow us to find all transactions for a specific account later
+    // (Optional, but good to have)
+    // List<TransactionLog> findByAccountId(Long accountId);
+}

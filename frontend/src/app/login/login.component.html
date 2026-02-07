@@ -1,0 +1,38 @@
+<div class="login-wrapper">
+  <div class="login-card">
+    
+    <div class="login-banner">
+      <h2>Welcome Back!</h2>
+      <p>Securely access your finances.</p>
+    </div>
+
+    <div class="login-form">
+      
+      <h2 class="form-title">{{ step === 1 ? 'Login' : 'Security Check' }}</h2>
+
+      <div *ngIf="step === 1" class="fade-in">
+        <div class="input-group">
+          <label>Username</label>
+          <input [(ngModel)]="username" type="text" placeholder="Enter your ID">
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input [(ngModel)]="password" type="password" placeholder="••••••••">
+        </div>
+        <button (click)="onLogin()" class="btn-primary">Sign In</button>
+        <p class="switch-link">New here? <a routerLink="/register">Create Account</a></p>
+      </div>
+
+      <div *ngIf="step === 2" class="fade-in">
+        <p class="info-text">We sent a code to your console.</p>
+        <div class="input-group">
+          <label>One-Time Password (OTP)</label>
+          <input [(ngModel)]="otp" type="text" placeholder="123456" class="otp-input">
+        </div>
+        <button (click)="onVerify()" class="btn-success">Verify Identity</button>
+        <button (click)="step = 1" class="btn-text">Back</button>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+package com.example.demo.service;
+
+import com.example.demo.entity.User;
+import com.example.demo.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
+import java.util.Random;
+
+@Service
+public class AuthService {
+	@Autowired private UserRepository userRepo;
+	public String login(String username, String password) {
+		User user = userRepo.findByUsername(username).orElseTHrow(()-> new RuntimeException("User not found"));)
+	}
+
+}

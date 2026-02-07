@@ -1,0 +1,71 @@
+<div class="register-wrapper">
+  <div class="register-card">
+    
+    <div class="card-sidebar">
+      <h2>Start your Journey</h2>
+      <p>Join thousands of users managing their finances smarter, faster, and safer.</p>
+      
+      <div class="features-list">
+        <div class="feature-item">
+          <span class="icon">🚀</span>
+          <span>Instant Accounts</span>
+        </div>
+        <div class="feature-item">
+          <span class="icon">🔒</span>
+          <span>Bank-Grade Security</span>
+        </div>
+        <div class="feature-item">
+          <span class="icon">💳</span>
+          <span>0% Transaction Fees</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-form">
+      <div class="form-header">
+        <h2>Create Account</h2>
+        <p>Fill in your details below</p>
+      </div>
+
+      <div class="form-section">
+        <label class="section-label">Personal Information</label>
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Full Name</label>
+            <input [(ngModel)]="fullName" type="text" placeholder="John Doe">
+          </div>
+          <div class="input-group">
+            <label>Phone Number</label>
+            <input [(ngModel)]="phone" type="text" placeholder="+1 234 567 890">
+          </div>
+        </div>
+        <div class="input-group full-width">
+          <label>Email Address</label>
+          <input [(ngModel)]="email" type="email" placeholder="john@example.com">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label class="section-label">Security Credentials</label>
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Choose Username</label>
+            <input [(ngModel)]="username" type="text" placeholder="johndoe123">
+          </div>
+          <div class="input-group">
+            <label>Choose Password</label>
+            <input [(ngModel)]="password" type="password" placeholder="••••••••">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button (click)="register()" class="btn-register">Sign Up Now</button>
+        <p class="login-link">
+          Already have an account? <a routerLink="/login">Login here</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>

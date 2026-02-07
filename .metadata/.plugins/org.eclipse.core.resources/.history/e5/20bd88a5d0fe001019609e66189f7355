@@ -1,0 +1,10 @@
+package com.example.demo.entity;
+
+import jarkarta.persistance.*;
+import lombok.Data;
+import java,time,LocalDateTime;
+
+@Enity @data @table(name="users")
+public class User {
+
+}

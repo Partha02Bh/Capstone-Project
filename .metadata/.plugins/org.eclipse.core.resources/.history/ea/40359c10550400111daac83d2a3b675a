@@ -1,0 +1,16 @@
+package com.example.demo.repositories;
+
+import com.example.demo.entity.TransactionLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import java.util.Optional;
+
+public interface TransactionLogRepository extends JpaRepository<TransactionLog, Long> {
+    
+    // Finds all transactions for a specific account (Sender or Receiver)
+    // Note: This matches the 'accountId' field in your Entity
+    List<TransactionLog> findByAccountId(Long accountId);
+
+    // Prevents duplicate transactions
+    Optional<TransactionLog> findByIdempotencyKey(String idempotencyKey);
+}

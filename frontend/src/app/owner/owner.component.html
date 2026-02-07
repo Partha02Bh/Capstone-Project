@@ -1,0 +1,62 @@
+<div class="admin-container">
+  
+  <header class="admin-header">
+    <h2>🔒 Admin Portal</h2>
+    <button (click)="logout()" class="logout-btn">Logout</button>
+  </header>
+
+  <div class="content">
+    
+    <div class="search-bar">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        placeholder="🔍 Filter by Account ID..." 
+      />
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Initiator (ID)</th>
+            <th>Receiver (ID)</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of filteredTransactions">
+            <td>#{{ t.id }}</td>
+            <td><span class="badge user">{{ t.accountId }}</span></td>
+            <td>
+              <span *ngIf="t.relatedAccountId" class="badge user">{{ t.relatedAccountId }}</span>
+              <span *ngIf="!t.relatedAccountId" class="text-muted">-</span>
+            </td>
+            
+            <td [class.negative]="t.amount < 0" [class.positive]="t.amount > 0">
+              {{ t.amount | currency }}
+            </td>
+
+            <td>
+              <span class="badge status" [ngClass]="{
+                'dep': t.transactionType === 'DEPOSIT',
+                'with': t.transactionType === 'WITHDRAW',
+                'tran': t.transactionType === 'TRANSFER'
+              }">{{ t.transactionType }}</span>
+            </td>
+
+            <td>{{ t.timestamp | date:'MMM d, h:mm a' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div *ngIf="filteredTransactions.length === 0" class="empty-state">
+        <p>No transactions found matching "{{searchTerm}}"</p>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,36 @@
+<div class="dashboard-container">
+  
+  <div *ngIf="!account" class="loading">
+    <p>Loading Account Details...</p>
+  </div>
+
+  <div *ngIf="account" class="dashboard-card">
+    
+    <div class="header">
+      <h1>👋 Welcome, {{ user?.fullName }}</h1>
+      <button (click)="onLogout()" class="logout-btn">Logout</button>
+    </div>
+
+    <div class="balance-card">
+      <p class="label">Current Balance</p>
+      <h2 class="balance">${{ account.balance }}</h2>
+      <p class="sub-text">Account #: {{ account.accountNumber }}</p>
+      <p class="sub-text">Status: <span class="status-active">{{ account.status }}</span></p>
+    </div>
+
+    <div class="actions-grid">
+      <button (click)="onDeposit()" class="action-btn deposit">
+        💰 Deposit
+      </button>
+      
+      <button (click)="onWithdraw()" class="action-btn withdraw">
+        💸 Withdraw
+      </button>
+
+      <button (click)="onTransfer()" class="action-btn transfer">
+        ➡️ Transfer Money
+      </button>
+    </div>
+
+  </div>
+</div>

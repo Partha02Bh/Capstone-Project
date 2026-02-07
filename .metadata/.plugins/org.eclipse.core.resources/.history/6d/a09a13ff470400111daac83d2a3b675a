@@ -1,0 +1,64 @@
+package com.example.demo.service;
+
+import com.example.demo.entity.Account;
+import com.example.demo.entity.TransactionLog;
+import com.example.demo.repositories.AccountRepository;
+import com.example.demo.repositories.TransactionLogRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Service
+public class TransferService {
+
+    @Autowired
+    private AccountRepository accountRepo;
+
+    @Autowired
+    private TransactionLogRepository txnRepo;
+
+    @Transactional
+    public TransactionLog transfer(Long sourceId, Long targetId, BigDecimal amount, String key) {
+        
+        // 1. Check for Duplicate Transaction (Idempotency)
+        // If the key exists, return the existing log to prevent double-spending
+        /* Note: If you haven't updated the Repository yet, comment out this check 
+           until Step 3 is done. 
+        */
+        if (txnRepo.findByIdempotencyKey(key).isPresent()) {
+            return txnRepo.findByIdempotencyKey(key).get();
+        }
+
+        // 2. Fetch Accounts
+        Account source = accountRepo.findById(sourceId)
+                .orElseThrow(() -> new RuntimeException("Source Account not found"));
+        Account target = accountRepo.findById(targetId)
+                .orElseThrow(() -> new RuntimeException("Target Account not found"));
+
+        // 3. Check Balance
+        if (source.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient Funds");
+        }
+
+        // 4. Perform Transfer (Using standard setBalance)
+        source.setBalance(source.getBalance().subtract(amount));
+        target.setBalance(target.getBalance().add(amount));
+
+        accountRepo.save(source);
+        accountRepo.save(target);
+
+        // 5. Save Log (Using Setters instead of Builder)
+        TransactionLog log = new TransactionLog();
+        log.setAccountId(source.getId());        // Owner of the log
+        log.setRelatedAccountId(target.getId()); // Who received the money
+        log.setAmount(amount);
+        log.setTransactionType("TRANSFER");      // Storing as String is simpler
+        log.setTimestamp(LocalDateTime.now());
+        log.setIdempotencyKey(key);              // Ensure your Entity has this field!
+
+        return txnRepo.save(log);
+    }
+}

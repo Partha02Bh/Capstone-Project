@@ -1,0 +1,23 @@
+package com.example.demo.controller;
+
+import com.example.demo.entity.*;
+import com.example.demo.repositories.*;
+import com.example.demo.service.*;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import java.math.BigDecimal;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:4200")
+public class MainController {
+	@Autowired private AuthService authService;
+	@Autowired private TransferService transferService;
+	@Autowired private AccountRepository accountRepo;
+	@Autowired private TransactionRepository txnRepo;
+	
+	@PostMapping("/login")
+	
+}

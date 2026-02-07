@@ -1,0 +1,48 @@
+package com.example.demo.controller;
+
+import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.RegisterRequest;
+import com.example.demo.entity.Account; // Import this
+import com.example.demo.repository.AccountRepository; // Import this
+import com.example.demo.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api")
+public class MainController {
+
+    @Autowired
+    private AuthService authService;
+
+    // We need the Repository to fetch account details
+    @Autowired
+    private AccountRepository accountRepo; 
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.generateOtp(request));
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<?> verify(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        String otp = request.get("otp");
+        return ResponseEntity.ok(authService.verifyOtp(username, otp));
+    }
+
+    // --- THIS WAS MISSING! ---
+    @GetMapping("/accounts/{userId}")
+    public ResponseEntity<?> getAccount(@PathVariable Long userId) {
+        Account account = accountRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        return ResponseEntity.ok(account);
+    }
+}

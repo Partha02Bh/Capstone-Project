@@ -1,0 +1,119 @@
+package com.example.demo.controller;
+
+import com.example.demo.entity.Account;
+import com.example.demo.entity.TransactionLog;
+import com.example.demo.entity.User; // Ensure User entity is imported
+import com.example.demo.enums.TransactionStatus;
+import com.example.demo.repository.AccountRepository;
+import com.example.demo.repository.TransactionLogRepository;
+import com.example.demo.repository.UserRepository; // Import User Repo
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/transactions")
+public class TransactionController {
+
+    @Autowired
+    private AccountRepository accountRepo;
+    
+    @Autowired
+    private UserRepository userRepo; // We need this to verify PIN/Password if needed
+
+    @Autowired
+    private TransactionLogRepository transactionLogRepo;
+
+    // --- 1. DEPOSIT ---
+    @PostMapping("/deposit")
+    public ResponseEntity<?> deposit(@RequestBody Map<String, String> request) {
+        Long userId = Long.parseLong(request.get("userId"));
+        BigDecimal amount = new BigDecimal(request.get("amount"));
+
+        Account account = accountRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        account.setBalance(account.getBalance().add(amount));
+        accountRepo.save(account);
+
+        // Log Transaction
+        logTransaction(account, amount, "DEPOSIT", null);
+
+        return ResponseEntity.ok("Deposit Successful");
+    }
+
+    // --- 2. WITHDRAW ---
+    @PostMapping("/withdraw")
+    public ResponseEntity<?> withdraw(@RequestBody Map<String, String> request) {
+        Long userId = Long.parseLong(request.get("userId"));
+        BigDecimal amount = new BigDecimal(request.get("amount"));
+
+        Account account = accountRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        if (account.getBalance().compareTo(amount) < 0) {
+            return ResponseEntity.badRequest().body("Insufficient Funds");
+        }
+
+        account.setBalance(account.getBalance().subtract(amount));
+        accountRepo.save(account);
+
+        logTransaction(account, amount.negate(), "WITHDRAW", null);
+
+        return ResponseEntity.ok("Withdrawal Successful");
+    }
+
+    // --- 3. TRANSFER ---
+    @PostMapping("/transfer")
+    public ResponseEntity<?> transfer(@RequestBody Map<String, String> request) {
+        Long sourceUserId = Long.parseLong(request.get("sourceId"));
+        Long targetUserId = Long.parseLong(request.get("targetId")); // User ID of receiver
+        BigDecimal amount = new BigDecimal(request.get("amount"));
+
+        // 1. Get Source Account
+        Account sourceAccount = accountRepo.findByUserId(sourceUserId)
+                .orElseThrow(() -> new RuntimeException("Sender Account not found"));
+
+        // 2. Get Target Account
+        Account targetAccount = accountRepo.findByUserId(targetUserId)
+                .orElseThrow(() -> new RuntimeException("Receiver Account not found"));
+
+        // 3. Check Balance
+        if (sourceAccount.getBalance().compareTo(amount) < 0) {
+            return ResponseEntity.badRequest().body("Insufficient Funds");
+        }
+
+        // 4. Perform Transfer
+        sourceAccount.setBalance(sourceAccount.getBalance().subtract(amount));
+        targetAccount.setBalance(targetAccount.getBalance().add(amount));
+
+        accountRepo.save(sourceAccount);
+        accountRepo.save(targetAccount);
+
+        // 5. Log for both sides
+        logTransaction(sourceAccount, amount.negate(), "TRANSFER_OUT", targetAccount.getId());
+        logTransaction(targetAccount, amount, "TRANSFER_IN", sourceAccount.getId());
+
+        return ResponseEntity.ok("Transfer Successful");
+    }
+
+    // --- HELPER: Save to History ---
+    private void logTransaction(Account account, BigDecimal amount, String type, Long relatedAccountId) {
+        // If you don't have a TransactionLog entity yet, you can comment this out.
+        // But for a complete system, you should have it!
+        /*
+        TransactionLog log = new TransactionLog();
+        log.setAccountId(account.getId());
+        log.setAmount(amount);
+        log.setTransactionType(type);
+        log.setTimestamp(LocalDateTime.now());
+        log.setRelatedAccountId(relatedAccountId);
+        transactionLogRepo.save(log);
+        */
+        System.out.println("Transaction: " + type + " | Amount: " + amount + " | Acc: " + account.getId());
+    }
+}

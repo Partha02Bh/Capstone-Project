@@ -1,0 +1,34 @@
+package com.example.demo.entity;
+
+import com.example.demo.enums.TransactionStatus;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Data
+@Builder
+@NoArgsConstructor 
+@AllArgsConstructor 
+@Table(name = "transactions")
+public class TransactionLog {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	private long sourceAccountId;
+	private long targetAccountId;
+	private BigDecimal amount;
+	
+	@Enumerated(EnumType.STRING)
+	
+	private TransactionStatus status;
+	private String idempotencyKey;
+	private LocalDateTime createdAt;
+
+}

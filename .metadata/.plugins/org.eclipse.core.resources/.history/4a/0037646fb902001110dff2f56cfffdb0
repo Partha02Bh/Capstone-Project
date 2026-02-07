@@ -1,0 +1,93 @@
+package com.example.demo.service;
+
+import com.example.demo.dto.RegisterRequest;
+import com.example.demo.entity.Account;
+import com.example.demo.entity.User;
+import com.example.demo.enums.AccountStatus;
+import com.example.demo.repositories.AccountRepository;
+import com.example.demo.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Random;
+
+@Service
+public class AuthService {
+	@Autowired
+	private UserRepository userRepo;
+// ... inside AuthService class ...
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private AccountRepository accountRepo;
+
+    public User register(RegisterRequest req) {
+        // 1. Check if username exists
+        if (userRepo.findByUsername(req.getUsername()).isPresent()) {
+            throw new RuntimeException("Username already taken!");
+        }
+
+        // 2. Create User & Encrypt Password
+        User user = new User();
+        user.setUsername(req.getUsername());
+        user.setPassword(passwordEncoder.encode(req.getPassword())); // <--- PERMANENT FIX
+        user.setFullName(req.getFullName());
+        user.setEmail(req.getEmail());
+        user.setPhone(req.getPhone());
+        user.setRole("ROLE_USER");
+        user.setIsActive(true);
+        
+        User savedUser = userRepo.save(user);
+
+        // 3. Auto-Create an Account for them
+        Account account = new Account();
+        account.setUser(savedUser);
+        account.setBalance(new BigDecimal(0)); // Start with 0
+        account.setAccountType("SAVINGS");
+        account.setStatus(AccountStatus.ACTIVE);
+        
+        // Generate a random 10-digit Account Number
+        String randomAccNum = "10" + (long) (Math.floor(Math.random() * 9_000_000_000L) + 1_000_000_000L);
+        account.setAccountNumber(randomAccNum);
+        
+        accountRepo.save(account);
+
+        return savedUser;
+    }
+
+    public void verifyPasswordOnly(String username, String password) {
+        // LOG 1: Who is trying to login?
+        System.out.println("--> LOGIN ATTEMPT for: " + username);
+        System.out.println("--> Raw Password entered: " + password);
+
+        User user = userRepo.findByUsername(username)
+               .orElseThrow(() -> {
+                   System.out.println("--> FAILURE: User not found in DB!");
+                   return new RuntimeException("User not found");
+               });
+
+        // LOG 2: What is in the DB?
+        System.out.println("--> DB Password Hash: " + user.getPassword());
+        
+        boolean matches = passwordEncoder.matches(password, user.getPassword());
+        System.out.println("--> Password Matches? " + matches);
+
+        if (!matches) {
+            throw new RuntimeException("Invalid Password");
+        }
+   }
+	
+	public User verifyOtp(String username, String otp) {
+		User user = userRepo.findByUsername(username).orElseThrow();
+		if(user.getOtpCode().equals(otp)&& user.getOtpExpiry().isAfter(LocalDateTime.now())) {
+			return user;
+		}
+		throw new RuntimeException("Invalid OTP");
+	}
+
+}

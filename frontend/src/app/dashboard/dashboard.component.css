@@ -1,0 +1,107 @@
+.dashboard-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f7f6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.dashboard-card {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  width: 400px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 20px;
+  margin: 0;
+  color: #333;
+}
+
+.logout-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.balance-card {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.balance {
+  font-size: 36px;
+  margin: 10px 0;
+}
+
+.label {
+  font-size: 14px;
+  opacity: 0.8;
+  margin: 0;
+}
+
+.sub-text {
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 5px 0;
+}
+
+.status-active {
+  background: #28a745;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+}
+
+.actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+  width: 100%;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+}
+
+.deposit {
+  background-color: #28a745;
+  color: white;
+}
+
+.withdraw {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.transfer {
+  background-color: #17a2b8; 
+  color: white;
+}
