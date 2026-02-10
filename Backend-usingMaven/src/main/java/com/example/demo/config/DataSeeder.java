@@ -14,27 +14,88 @@ public class DataSeeder implements CommandLineRunner {
     private UserRepository userRepository;
 
     @Autowired
+    private com.example.demo.repositories.AccountRepository accountRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
+        seedUser("admin", "admin123", "ROLE_ADMIN", "Bank Manager", "admin@bank.com", "1000000000",
+                new java.math.BigDecimal("0.00"));
+        seedUser("Partha", "Partha123", "ROLE_USER", "Partha", "partha@gmail.com", "1000000001",
+                new java.math.BigDecimal("500000.00"));
+        seedUser("Prakhar", "Prakhar123", "ROLE_USER", "Prakhar", "prakhar@gmail.com", "1000000002",
+                new java.math.BigDecimal("300000.00"));
+        seedUser("Nidhi", "Nidhi123", "ROLE_USER", "Nidhi", "nidhi@gmail.com", "1000000003",
+                new java.math.BigDecimal("400000.00"));
+        seedUser("Krishna", "Krishna123", "ROLE_USER", "Krishna", "krishna@gmail.com", "1000000004",
+                new java.math.BigDecimal("200000.00"));
+    }
 
-        if (userRepository.findByUsername("admin").isPresent()) {
-            User admin = userRepository.findByUsername("admin").get();
-            if (!admin.getPassword().startsWith("$2a$")) {
-                admin.setPassword(passwordEncoder.encode("admin123"));
-                userRepository.save(admin);
-                System.out.println("--> Admin password encrypted!");
+    private void seedUser(String username, String rawPassword, String role, String fullName, String email,
+            String accountNumber, java.math.BigDecimal balance) {
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if (user == null) {
+            user = new User();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            user.setRole(role);
+            user.setFullName(fullName);
+            user.setEmail(email);
+            user.setPhone("1234567890"); // Dummy phone
+            user.setIsActive(true);
+            user = userRepository.save(user);
+            System.out.println("--> Created user: " + username + " with role: " + role);
+
+            createAccountForUser(user, accountNumber, balance);
+        } else {
+            // Update role or password if it doesn't match
+            boolean changed = false;
+
+            if (!user.getRole().equals(role)) {
+                user.setRole(role);
+                changed = true;
+                System.out.println("--> Updated role for: " + username + " to " + role);
+            }
+
+            // Check password (only if not already encrypted match)
+            if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+                user.setPassword(passwordEncoder.encode(rawPassword));
+                changed = true;
+                System.out.println("--> Updated password for: " + username);
+            }
+
+            if (changed) {
+                userRepository.save(user);
             }
         }
+    }
 
-        if (userRepository.findByUsername("john").isPresent()) {
-            User john = userRepository.findByUsername("john").get();
-            if (!john.getPassword().startsWith("$2a$")) {
-                john.setPassword(passwordEncoder.encode("john123"));
-                userRepository.save(john);
-                System.out.println("--> John's password encrypted!");
-            }
+    private void createAccountForUser(User user, String accountNumber, java.math.BigDecimal balance) {
+        com.example.demo.entity.Account account = accountRepository.findByUser_Id(user.getId()).orElse(null);
+
+        if (account == null) {
+            System.out.println("--> Account NOT found for user: " + user.getUsername() + ". Creating new...");
+            account = new com.example.demo.entity.Account();
+            account.setUser(user);
+            account.setBalance(balance);
+            account.setAccountType("SAVINGS");
+            account.setStatus(com.example.demo.enums.AccountStatus.ACTIVE);
+            account.setAccountNumber(accountNumber);
+
+            accountRepository.save(account);
+            System.out.println("--> Created account for: " + user.getUsername() + " with Balance: " + balance);
+        } else {
+            System.out.println("--> Account FOUND for user: " + user.getUsername() + ". Current Balance: "
+                    + account.getBalance() + " | Expected: " + balance);
+
+            // FORCE UPDATE for debugging
+            account.setBalance(balance);
+            account.setAccountNumber(accountNumber); // Ensure account number is correct too
+            accountRepository.save(account);
+            System.out.println("--> FORCED UPDATE account balance for: " + user.getUsername() + " to " + balance);
         }
     }
 }

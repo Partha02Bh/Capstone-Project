@@ -20,6 +20,9 @@ public class TransactionLog {
 
 	private String idempotencyKey;
 
+	private String status; // SUCCESS, FAILED
+	private String reasonCode; // e.g., "Insufficient Funds"
+
 	public Long getId() {
 		return id;
 	}
@@ -74,5 +77,21 @@ public class TransactionLog {
 
 	public void setIdempotencyKey(String idempotencyKey) {
 		this.idempotencyKey = idempotencyKey;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public String getReasonCode() {
+		return reasonCode;
+	}
+
+	public void setReasonCode(String reasonCode) {
+		this.reasonCode = reasonCode;
 	}
 }

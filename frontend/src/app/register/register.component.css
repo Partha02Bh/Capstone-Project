@@ -1,4 +1,3 @@
-
 .register-wrapper {
   display: flex;
   justify-content: center;
@@ -134,7 +133,7 @@
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.3s;
-  box-sizing: border-box; 
+  box-sizing: border-box;
 }
 
 .input-group input:focus {
@@ -177,4 +176,30 @@
 
 .login-link a:hover {
   text-decoration: underline;
+}
+
+/* Responsiveness */
+@media (max-width: 900px) {
+  .register-card {
+    width: 95%;
+    flex-direction: column;
+  }
+
+  .card-sidebar {
+    padding: 30px;
+    text-align: center;
+  }
+
+  .features-list {
+    align-items: center;
+    /* Center items if text-align is center */
+  }
+
+  .card-form {
+    padding: 30px;
+  }
+
+  .input-grid {
+    grid-template-columns: 1fr;
+  }
 }

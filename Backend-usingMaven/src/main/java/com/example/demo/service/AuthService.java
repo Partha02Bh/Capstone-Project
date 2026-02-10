@@ -83,7 +83,7 @@ public class AuthService {
 			user.setOtpCode(null);
 			userRepo.save(user);
 
-			String token = jwtUtil.generateToken(username);
+			String token = jwtUtil.generateToken(user.getUsername());
 
 			Map<String, Object> response = new HashMap<>();
 			response.put("token", token);

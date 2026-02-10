@@ -31,7 +31,8 @@ export class LoginComponent {
 
     this.api.verifyOtp(this.username, this.otp).subscribe({
       next: (res: any)=>{
-        
+        console.log('Login Response Full:', res);
+        console.log('Role received:', res.role);
 
         localStorage.setItem('token', res.token);
         localStorage.setItem('role', res.role);
@@ -39,8 +40,10 @@ export class LoginComponent {
 
 
         if(res.role === 'ROLE_ADMIN' || res.role === 'ADMIN'){
+          console.log('Redirecting to OWNER (Admin Dashboard)');
           this.router.navigate(['/owner']);
         } else{
+          console.log('Redirecting to DASHBOARD (User Dashboard)');
           this.router.navigate(['/dashboard']);
         }
       },

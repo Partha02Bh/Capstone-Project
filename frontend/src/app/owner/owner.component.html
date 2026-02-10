@@ -1,60 +1,81 @@
-<div class="admin-container">
-  
-  <header class="admin-header">
-    <h2>🔒 Admin Portal</h2>
-    <button (click)="logout()" class="logout-btn">Logout</button>
-  </header>
-
-  <div class="content">
-    
-    <div class="search-bar">
-      <input 
-        type="text" 
-        [(ngModel)]="searchTerm" 
-        placeholder="🔍 Filter by Account ID..." 
-      />
+<div class="dashboard-container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">🛡️ Admin Portal</div>
+    <div class="user-info">
+      <button (click)="logout()" class="logout-btn">Logout</button>
     </div>
+  </nav>
 
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Initiator (ID)</th>
-            <th>Receiver (ID)</th>
-            <th>Amount</th>
-            <th>Type</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let t of filteredTransactions">
-            <td>#{{ t.id }}</td>
-            <td><span class="badge user">{{ t.accountId }}</span></td>
-            <td>
-              <span *ngIf="t.relatedAccountId" class="badge user">{{ t.relatedAccountId }}</span>
-              <span *ngIf="!t.relatedAccountId" class="text-muted">-</span>
-            </td>
-            
-            <td [class.negative]="t.amount < 0" [class.positive]="t.amount > 0">
-              {{ t.amount | currency }}
-            </td>
+  <!-- Dashboard Content -->
+  <div class="dashboard-content">
 
-            <td>
-              <span class="badge status" [ngClass]="{
-                'dep': t.transactionType === 'DEPOSIT',
-                'with': t.transactionType === 'WITHDRAW',
-                'tran': t.transactionType === 'TRANSFER'
-              }">{{ t.transactionType }}</span>
-            </td>
+    <div class="content-wrapper">
+      <!-- Search Section -->
+      <div class="search-section">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Search by Account ID..." />
+        </div>
+      </div>
 
-            <td>{{ t.timestamp | date:'MMM d, h:mm a' }}</td>
-          </tr>
-        </tbody>
-      </table>
-      
-      <div *ngIf="filteredTransactions.length === 0" class="empty-state">
-        <p>No transactions found matching "{{searchTerm}}"</p>
+      <!-- Transactions Table Card -->
+      <div class="table-card">
+        <div class="card-header">
+          <h3>Transaction Records</h3>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Initiator</th>
+                <th>Receiver</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of filteredTransactions">
+                <td><span class="id-badge">#{{ t.id }}</span></td>
+                <td>
+                  <div class="user-cell">
+                    <span class="user-icon">👤</span>
+                    <span>{{ t.accountId }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell" *ngIf="t.relatedAccountId">
+                    <span class="user-icon receiver">👤</span>
+                    <span>{{ t.relatedAccountId }}</span>
+                  </div>
+                  <span *ngIf="!t.relatedAccountId" class="dash">-</span>
+                </td>
+
+                <td [class.negative]="t.amount < 0" [class.positive]="t.amount > 0" class="amount-cell">
+                  {{ t.amount | currency }}
+                </td>
+
+                <td>
+                  <span class="status-badge" [ngClass]="{
+                    'deposit': t.transactionType === 'DEPOSIT',
+                    'withdraw': t.transactionType === 'WITHDRAW',
+                    'transfer': t.transactionType === 'TRANSFER'
+                  }">{{ t.transactionType }}</span>
+                </td>
+
+                <td class="date-cell">{{ t.timestamp | date:'mediumDate' }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div *ngIf="filteredTransactions.length === 0" class="empty-state">
+            <div class="empty-icon">📂</div>
+            <p>No transactions found matching "{{searchTerm}}"</p>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -8,30 +8,31 @@ import { Router } from '@angular/router';
   styleUrls: ['./owner.component.css']
 })
 export class OwnerComponent implements OnInit {
-  
-  allTransactions: any[] = [];
-  searchTerm: string = ''; 
 
-  constructor(private api: ApiService, private router: Router){}
+  allTransactions: any[] = [];
+  searchTerm: string = '';
+
+  constructor(private api: ApiService, private router: Router) { }
 
   ngOnInit() {
     this.api.getAllTransactions().subscribe((data: any) => {
-      this.allTransactions = data;
+      this.allTransactions = data.sort((a: any, b: any) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
     });
   }
-
 
   get filteredTransactions() {
     if (!this.searchTerm) {
       return this.allTransactions;
     }
-    return this.allTransactions.filter(t => 
-      t.accountId.toString().includes(this.searchTerm) || 
+    return this.allTransactions.filter(t =>
+      t.accountId.toString().includes(this.searchTerm) ||
       (t.relatedAccountId && t.relatedAccountId.toString().includes(this.searchTerm))
     );
   }
 
-  logout(){
+  logout() {
     localStorage.clear();
     this.router.navigate(['/login']);
   }

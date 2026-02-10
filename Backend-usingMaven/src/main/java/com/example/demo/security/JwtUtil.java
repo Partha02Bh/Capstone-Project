@@ -15,7 +15,7 @@ import java.util.function.Function;
 public class JwtUtil {
 
     // Ideally, store this in application.properties, not hardcoded!
-    private static final String SECRET_KEY = "super_secret_key_for_banking_system_signature_must_be_long"; 
+    private static final String SECRET_KEY = "super_secret_key_for_banking_system_signature_must_be_long";
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
@@ -40,7 +40,18 @@ public class JwtUtil {
     // 2. Validate Token (Check the Badge)
     public Boolean validateToken(String token, String username) {
         final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(username) && !isTokenExpired(token));
+        boolean usernameMatches = extractedUsername.equals(username);
+        boolean expired = isTokenExpired(token);
+
+        if (!usernameMatches) {
+            System.out.println(
+                    "--> JwtUtil: Username mismatch! Token: " + extractedUsername + " / UserDetails: " + username);
+        }
+        if (expired) {
+            System.out.println("--> JwtUtil: Token Expired!");
+        }
+
+        return (usernameMatches && !expired);
     }
 
     public String extractUsername(String token) {

@@ -2,8 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RegisterRequest;
-import com.example.demo.entity.Account; 
-import com.example.demo.repositories.AccountRepository; 
+import com.example.demo.entity.Account;
+import com.example.demo.repositories.AccountRepository;
 import com.example.demo.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +18,7 @@ public class MainController {
     private AuthService authService;
 
     @Autowired
-    private AccountRepository accountRepo; 
+    private AccountRepository accountRepo;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
@@ -39,7 +39,7 @@ public class MainController {
 
     @GetMapping("/accounts/{userId}")
     public ResponseEntity<?> getAccount(@PathVariable("userId") Long userId) {
-        Account account = accountRepo.findByUserId(userId)
+        Account account = accountRepo.findByUser_Id(userId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         return ResponseEntity.ok(account);
     }

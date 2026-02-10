@@ -41,7 +41,7 @@ export class ApiService {
   post(endpoint: string, data: any) {
     return this.http.post(`${this.baseUrl}${endpoint}`, data, { ...this.getHeaders(), responseType: 'text' });
   }
-  
+
   transfer(sourceId: any, targetId: any, amount: any) {
     const body = { sourceId, targetId, amount };
     return this.post('/transactions/transfer', body);
@@ -50,5 +50,9 @@ export class ApiService {
 
   getAllTransactions() {
     return this.http.get<any[]>(`${this.baseUrl}/admin/transactions`, this.getHeaders());
+  }
+
+  getTransactions(accountId: any) {
+    return this.http.get<any[]>(`${this.baseUrl}/transactions/${accountId}`, this.getHeaders());
   }
 }
