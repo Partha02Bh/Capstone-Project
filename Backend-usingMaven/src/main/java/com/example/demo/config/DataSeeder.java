@@ -2,6 +2,8 @@ package com.example.demo.config;
 
 import com.example.demo.entity.User;
 import com.example.demo.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -9,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
+
+    private static final Logger logger = LoggerFactory.getLogger(DataSeeder.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -21,6 +25,7 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        logger.info("========== Starting database seeding ==========");
         seedUser("admin", "admin123", "ROLE_ADMIN", "Bank Manager", "admin@bank.com", "1000000000",
                 new java.math.BigDecimal("0.00"));
         seedUser("Partha", "Partha123", "ROLE_USER", "Partha", "partha@gmail.com", "1000000001",
@@ -31,6 +36,7 @@ public class DataSeeder implements CommandLineRunner {
                 new java.math.BigDecimal("400000.00"));
         seedUser("Krishna", "Krishna123", "ROLE_USER", "Krishna", "krishna@gmail.com", "1000000004",
                 new java.math.BigDecimal("200000.00"));
+        logger.info("========== Database seeding completed ==========");
     }
 
     private void seedUser(String username, String rawPassword, String role, String fullName, String email,
@@ -47,7 +53,7 @@ public class DataSeeder implements CommandLineRunner {
             user.setPhone("1234567890"); // Dummy phone
             user.setIsActive(true);
             user = userRepository.save(user);
-            System.out.println("--> Created user: " + username + " with role: " + role);
+            logger.info("Created user: username={}, role={}", username, role);
 
             createAccountForUser(user, accountNumber, balance);
         } else {
@@ -57,14 +63,14 @@ public class DataSeeder implements CommandLineRunner {
             if (!user.getRole().equals(role)) {
                 user.setRole(role);
                 changed = true;
-                System.out.println("--> Updated role for: " + username + " to " + role);
+                logger.info("Updated role for user: username={}, newRole={}", username, role);
             }
 
             // Check password (only if not already encrypted match)
             if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
                 user.setPassword(passwordEncoder.encode(rawPassword));
                 changed = true;
-                System.out.println("--> Updated password for: " + username);
+                logger.info("Updated password for user: username={}", username);
             }
 
             if (changed) {
@@ -77,7 +83,7 @@ public class DataSeeder implements CommandLineRunner {
         com.example.demo.entity.Account account = accountRepository.findByUser_Id(user.getId()).orElse(null);
 
         if (account == null) {
-            System.out.println("--> Account NOT found for user: " + user.getUsername() + ". Creating new...");
+            logger.info("Account not found for user: {}. Creating new account...", user.getUsername());
             account = new com.example.demo.entity.Account();
             account.setUser(user);
             account.setBalance(balance);
@@ -86,16 +92,17 @@ public class DataSeeder implements CommandLineRunner {
             account.setAccountNumber(accountNumber);
 
             accountRepository.save(account);
-            System.out.println("--> Created account for: " + user.getUsername() + " with Balance: " + balance);
+            logger.info("Created account for user: username={}, accountNumber={}, balance={}", user.getUsername(),
+                    accountNumber, balance);
         } else {
-            System.out.println("--> Account FOUND for user: " + user.getUsername() + ". Current Balance: "
-                    + account.getBalance() + " | Expected: " + balance);
+            logger.debug("Account found for user: username={}, currentBalance={}", user.getUsername(),
+                    account.getBalance());
 
             // FORCE UPDATE for debugging
             account.setBalance(balance);
-            account.setAccountNumber(accountNumber); // Ensure account number is correct too
+            account.setAccountNumber(accountNumber);
             accountRepository.save(account);
-            System.out.println("--> FORCED UPDATE account balance for: " + user.getUsername() + " to " + balance);
+            logger.info("Updated account for user: username={}, newBalance={}", user.getUsername(), balance);
         }
     }
 }

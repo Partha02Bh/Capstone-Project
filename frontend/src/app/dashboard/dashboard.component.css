@@ -513,6 +513,140 @@ h2 {
   background: #004494;
 }
 
+.btn-confirm:disabled {
+  background: #a0a0a0;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* --- Amount Validation Errors --- */
+.input-error {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15) !important;
+}
+
+.error-msg {
+  display: block;
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
+  animation: fadeInError 0.3s ease;
+}
+
+@keyframes fadeInError {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Sender Info Banner --- */
+.sender-info {
+  background: linear-gradient(135deg, #f0f7ff, #e6f0fa);
+  border: 1px solid #d0e3f5;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.sender-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0056b3;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.sender-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sender-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+}
+
+.sender-account {
+  font-size: 13px;
+  color: #666;
+}
+
+.sender-balance {
+  font-size: 13px;
+  color: #0056b3;
+  font-weight: 500;
+}
+
+/* --- Transfer Confirmation Summary --- */
+.confirm-summary {
+  padding: 10px 0;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: #999;
+  text-transform: uppercase;
+  font-weight: 600;
+  min-width: 60px;
+}
+
+.summary-value {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-value strong {
+  font-size: 15px;
+  color: #333;
+}
+
+.summary-value span {
+  font-size: 12px;
+  color: #888;
+}
+
+.summary-value.amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0056b3;
+}
+
+.summary-row.highlight {
+  background: #f0f7ff;
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin-top: 5px;
+}
+
+.summary-divider {
+  text-align: center;
+  padding: 5px 0;
+  color: #ccc;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.summary-divider span {
+  font-size: 18px;
+}
+
 /* Message Styles */
 .message-content {
   text-align: center;
@@ -764,4 +898,36 @@ h2 {
     width: 95%;
     margin: 0 10px;
   }
+}
+
+/* --- Receiver Lookup Styles --- */
+.receiver-info {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  animation: fadeInError 0.3s ease;
+}
+
+.receiver-found {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #2e7d32;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.receiver-found strong {
+  color: #1b5e20;
+}
+
+.lookup-loading {
+  display: block;
+  color: #888;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
+  animation: fadeInError 0.3s ease;
 }

@@ -1,25 +1,29 @@
 <div class="login-wrapper">
   <div class="login-card">
-    
+
     <div class="login-banner">
       <h2>Welcome Back!</h2>
       <p>Securely access your finances.</p>
     </div>
 
     <div class="login-form">
-      
+
       <h2 class="form-title">{{ step === 1 ? 'Login' : 'Security Check' }}</h2>
 
       <div *ngIf="step === 1" class="fade-in">
         <div class="input-group">
           <label>Username</label>
-          <input [(ngModel)]="username" type="text" placeholder="Enter your ID">
+          <input [(ngModel)]="username" type="text" placeholder="Enter your ID" maxlength="25"
+            (blur)="validateUsername()" [class.input-error]="errors['username']">
+          <span class="error-msg" *ngIf="errors['username']">{{ errors['username'] }}</span>
         </div>
         <div class="input-group">
           <label>Password</label>
-          <input [(ngModel)]="password" type="password" placeholder="••••••••">
+          <input [(ngModel)]="password" type="password" placeholder="••••••••" maxlength="10"
+            (blur)="validatePassword()" [class.input-error]="errors['password']">
+          <span class="error-msg" *ngIf="errors['password']">{{ errors['password'] }}</span>
         </div>
-        <button (click)="onLogin()" class="btn-primary">Sign In</button>
+        <button (click)="onLogin()" class="btn-primary" [disabled]="!isFormValid">Sign In</button>
         <p class="switch-link">New here? <a routerLink="/register">Create Account</a></p>
       </div>
 
@@ -34,5 +38,27 @@
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- Error / Info Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-box" [ngClass]="modalType" (click)="$event.stopPropagation()">
+
+    <!-- Animated Error Icon -->
+    <div *ngIf="modalType === 'error'" class="cross-circle">
+      <div class="background"></div>
+      <div class="cross draw"></div>
+    </div>
+
+    <!-- Info Icon -->
+    <div *ngIf="modalType === 'info'" class="info-circle">
+      <div class="background"></div>
+      <div class="info-icon">✉</div>
+    </div>
+
+    <h3>{{ modalTitle }}</h3>
+    <p>{{ modalMessage }}</p>
+    <button (click)="closeModal()" class="modal-close-btn">OK</button>
   </div>
 </div>

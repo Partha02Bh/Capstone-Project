@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
@@ -13,6 +15,8 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
     // Ideally, store this in application.properties, not hardcoded!
     private static final String SECRET_KEY = "super_secret_key_for_banking_system_signature_must_be_long";
@@ -24,6 +28,7 @@ public class JwtUtil {
     // 1. Generate Token (Create the Badge)
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
+        logger.info("Generating JWT token for username: {}", username);
         return createToken(claims, username);
     }
 
@@ -44,11 +49,10 @@ public class JwtUtil {
         boolean expired = isTokenExpired(token);
 
         if (!usernameMatches) {
-            System.out.println(
-                    "--> JwtUtil: Username mismatch! Token: " + extractedUsername + " / UserDetails: " + username);
+            logger.warn("JwtUtil: Username mismatch! Token: {} / Expected: {}", extractedUsername, username);
         }
         if (expired) {
-            System.out.println("--> JwtUtil: Token Expired!");
+            logger.warn("JwtUtil: Token expired for user: {}", username);
         }
 
         return (usernameMatches && !expired);

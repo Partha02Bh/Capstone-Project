@@ -1,10 +1,10 @@
 <div class="register-wrapper">
   <div class="register-card">
-    
+
     <div class="card-sidebar">
       <h2>Start your Journey</h2>
       <p>Join thousands of users managing their finances smarter, faster, and safer.</p>
-      
+
       <div class="features-list">
         <div class="feature-item">
           <span class="icon">🚀</span>
@@ -30,42 +30,89 @@
       <div class="form-section">
         <label class="section-label">Personal Information</label>
         <div class="input-grid">
+          <!-- Full Name -->
           <div class="input-group">
             <label>Full Name</label>
-            <input [(ngModel)]="fullName" type="text" placeholder="John Doe">
+            <input [(ngModel)]="fullName" type="text" placeholder="John Doe" maxlength="25" (blur)="validateFullName()"
+              [class.input-error]="errors['fullName']">
+            <span class="error-msg" *ngIf="errors['fullName']">{{ errors['fullName'] }}</span>
           </div>
+
+          <!-- Phone Number -->
           <div class="input-group">
             <label>Phone Number</label>
-            <input [(ngModel)]="phone" type="text" placeholder="+1 234 567 890">
+            <div class="phone-input-group">
+              <select [(ngModel)]="countryCode" class="country-code-select">
+                <option *ngFor="let c of countryCodes" [value]="c.code">{{ c.label }}</option>
+              </select>
+              <input [(ngModel)]="phone" type="text" placeholder="9876543210" maxlength="10" (blur)="validatePhone()"
+                [class.input-error]="errors['phone']">
+            </div>
+            <span class="error-msg" *ngIf="errors['phone']">{{ errors['phone'] }}</span>
           </div>
         </div>
+
+        <!-- Email -->
         <div class="input-group full-width">
           <label>Email Address</label>
-          <input [(ngModel)]="email" type="email" placeholder="john@example.com">
+          <input [(ngModel)]="email" type="email" placeholder="john@example.com" maxlength="25" (blur)="validateEmail()"
+            [class.input-error]="errors['email']">
+          <span class="error-msg" *ngIf="errors['email']">{{ errors['email'] }}</span>
         </div>
       </div>
 
       <div class="form-section">
         <label class="section-label">Security Credentials</label>
         <div class="input-grid">
+          <!-- Username -->
           <div class="input-group">
             <label>Choose Username</label>
-            <input [(ngModel)]="username" type="text" placeholder="johndoe123">
+            <input [(ngModel)]="username" type="text" placeholder="johndoe" maxlength="25" (blur)="validateUsername()"
+              [class.input-error]="errors['username']">
+            <span class="error-msg" *ngIf="errors['username']">{{ errors['username'] }}</span>
           </div>
+
+          <!-- Password -->
           <div class="input-group">
             <label>Choose Password</label>
-            <input [(ngModel)]="password" type="password" placeholder="••••••••">
+            <input [(ngModel)]="password" type="password" placeholder="••••••••" maxlength="10"
+              (blur)="validatePassword()" [class.input-error]="errors['password']">
+            <span class="error-msg" *ngIf="errors['password']">{{ errors['password'] }}</span>
           </div>
         </div>
       </div>
 
       <div class="form-actions">
-        <button (click)="register()" class="btn-register">Sign Up Now</button>
+        <button (click)="register()" class="btn-register" [disabled]="!isFormValid">Sign Up Now</button>
         <p class="login-link">
           Already have an account? <a routerLink="/login">Login here</a>
         </p>
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- Success / Error Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-box" [ngClass]="modalType" (click)="$event.stopPropagation()">
+
+    <!-- Animated Success Icon -->
+    <div *ngIf="modalType === 'success'" class="checkmark-circle">
+      <div class="background"></div>
+      <div class="checkmark draw"></div>
+    </div>
+
+    <!-- Animated Error Icon -->
+    <div *ngIf="modalType === 'error'" class="cross-circle">
+      <div class="background"></div>
+      <div class="cross draw"></div>
+    </div>
+
+    <h3>{{ modalTitle }}</h3>
+    <p>{{ modalMessage }}</p>
+    <button (click)="closeModal()" class="modal-close-btn">
+      {{ modalType === 'success' ? 'Continue to Login' : 'Try Again' }}
+    </button>
   </div>
 </div>

@@ -2,11 +2,16 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Account;
 import com.example.demo.entity.TransactionLog;
-import com.example.demo.entity.User; // 
-import com.example.demo.enums.TransactionStatus;
+import com.example.demo.exception.AccountNotActiveException;
+import com.example.demo.exception.AccountNotFoundException;
+import com.example.demo.exception.InsufficientFundsException;
+import com.example.demo.exception.InvalidAmountException;
+import com.example.demo.exception.SelfTransferException;
 import com.example.demo.repositories.AccountRepository;
 import com.example.demo.repositories.TransactionLogRepository;
 import com.example.demo.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +24,8 @@ import java.util.Map;
 @RequestMapping("/api/transactions")
 public class TransactionController {
 
+	private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
+
 	@Autowired
 	private AccountRepository accountRepo;
 
@@ -28,28 +35,43 @@ public class TransactionController {
 	@Autowired
 	private TransactionLogRepository transactionLogRepo;
 
+	private static final BigDecimal MIN_DEPOSIT = new BigDecimal("100");
+	private static final BigDecimal MAX_DEPOSIT = new BigDecimal("10000");
+	private static final BigDecimal MIN_WITHDRAW = new BigDecimal("100");
+	private static final BigDecimal MAX_WITHDRAW = new BigDecimal("10000");
+	private static final BigDecimal MIN_TRANSFER = new BigDecimal("100");
+	private static final BigDecimal MAX_TRANSFER = new BigDecimal("10000");
+
 	@PostMapping("/deposit")
 	public ResponseEntity<?> deposit(@RequestBody Map<String, String> request) {
 		Long userId = Long.parseLong(request.get("userId"));
 		BigDecimal amount = new BigDecimal(request.get("amount"));
 
-		try {
-			Account account = accountRepo.findByUser_Id(userId)
-					.orElseThrow(() -> new RuntimeException("Account not found"));
+		logger.info("Deposit request: userId={}, amount={}", userId, amount);
 
-			account.setBalance(account.getBalance().add(amount));
-			accountRepo.save(account);
-
-			logTransaction(account.getId(), amount, "DEPOSIT", null, "SUCCESS", null);
-			return ResponseEntity.ok("Deposit Successful");
-
-		} catch (Exception e) {
-			// Try to find account ID just for logging if possible, otherwise use 0 or null
-			// Here we might not have accountId if findByUser_Id failed.
-			// But usually we log failures.
-			// Ideally we need looking up account first.
-			return ResponseEntity.badRequest().body("Deposit Failed: " + e.getMessage());
+		// Validate amount
+		if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+			throw new InvalidAmountException("Deposit amount must be greater than zero");
 		}
+		if (amount.compareTo(MIN_DEPOSIT) < 0) {
+			throw new InvalidAmountException("Minimum deposit amount is $100");
+		}
+		if (amount.compareTo(MAX_DEPOSIT) > 0) {
+			throw new InvalidAmountException("Maximum deposit amount is $10,000");
+		}
+
+		Account account = accountRepo.findByUser_Id(userId)
+				.orElseThrow(() -> new AccountNotFoundException(userId));
+
+		// Enhanced switch for account status validation
+		validateAccountActive(account);
+
+		account.setBalance(account.getBalance().add(amount));
+		accountRepo.save(account);
+
+		logTransaction(account.getId(), amount, "DEPOSIT", null, "SUCCESS", null);
+		logger.info("Deposit successful: userId={}, amount={}, newBalance={}", userId, amount, account.getBalance());
+		return ResponseEntity.ok("Deposit Successful");
 	}
 
 	@PostMapping("/withdraw")
@@ -57,23 +79,38 @@ public class TransactionController {
 		Long userId = Long.parseLong(request.get("userId"));
 		BigDecimal amount = new BigDecimal(request.get("amount"));
 
-		Account account;
-		try {
-			account = accountRepo.findByUser_Id(userId)
-					.orElseThrow(() -> new RuntimeException("Account not found"));
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().body("Account not found");
+		logger.info("Withdrawal request: userId={}, amount={}", userId, amount);
+
+		// Validate amount
+		if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+			throw new InvalidAmountException("Withdrawal amount must be greater than zero");
+		}
+		if (amount.compareTo(MIN_WITHDRAW) < 0) {
+			throw new InvalidAmountException("Minimum withdrawal amount is $100");
+		}
+		if (amount.compareTo(MAX_WITHDRAW) > 0) {
+			throw new InvalidAmountException("Maximum withdrawal amount is $10,000");
 		}
 
+		Account account = accountRepo.findByUser_Id(userId)
+				.orElseThrow(() -> new AccountNotFoundException(userId));
+
+		// Enhanced switch for account status validation
+		validateAccountActive(account);
+
 		if (account.getBalance().compareTo(amount) < 0) {
+			logger.warn("Withdrawal failed - insufficient funds: userId={}, balance={}, requested={}", userId,
+					account.getBalance(), amount);
 			logTransaction(account.getId(), amount.negate(), "WITHDRAW", null, "FAILED", "Insufficient Funds");
-			return ResponseEntity.badRequest().body("Insufficient Funds");
+			throw new InsufficientFundsException();
 		}
 
 		account.setBalance(account.getBalance().subtract(amount));
 		accountRepo.save(account);
 
 		logTransaction(account.getId(), amount.negate(), "WITHDRAW", null, "SUCCESS", null);
+		logger.info("Withdrawal successful: userId={}, amount={}, newBalance={}", userId, amount,
+				account.getBalance());
 
 		return ResponseEntity.ok("Withdrawal Successful");
 	}
@@ -84,24 +121,44 @@ public class TransactionController {
 		Long targetUserId = Long.parseLong(request.get("targetId"));
 		BigDecimal amount = new BigDecimal(request.get("amount"));
 
-		Account sourceAccount = accountRepo.findByUser_Id(sourceUserId).orElse(null);
-		Account targetAccount = accountRepo.findByUser_Id(targetUserId).orElse(null);
+		logger.info("Transfer request: sourceUserId={}, targetUserId={}, amount={}", sourceUserId, targetUserId,
+				amount);
 
-		if (sourceAccount == null) {
-			return ResponseEntity.badRequest().body("Sender Account not found");
+		// Self-transfer check
+		if (sourceUserId.equals(targetUserId)) {
+			throw new SelfTransferException();
 		}
-		if (targetAccount == null) {
-			// Log failure for sender? Or just return error?
-			// Generally we log actions on the source account.
-			logTransaction(sourceAccount.getId(), amount.negate(), "TRANSFER_OUT", null, "FAILED",
-					"Receiver Account not found");
-			return ResponseEntity.badRequest().body("Receiver Account not found");
+
+		// Validate amount
+		if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+			throw new InvalidAmountException("Transfer amount must be greater than zero");
 		}
+		if (amount.compareTo(MIN_TRANSFER) < 0) {
+			throw new InvalidAmountException("Minimum transfer amount is $100");
+		}
+		if (amount.compareTo(MAX_TRANSFER) > 0) {
+			throw new InvalidAmountException("Maximum transfer amount is $10,000");
+		}
+
+		Account sourceAccount = accountRepo.findByUser_Id(sourceUserId)
+				.orElseThrow(() -> new AccountNotFoundException("Sender account not found"));
+		Account targetAccount = accountRepo.findByUser_Id(targetUserId)
+				.orElseThrow(() -> {
+					logTransaction(sourceAccount.getId(), amount.negate(), "TRANSFER_OUT", null, "FAILED",
+							"Receiver Account not found");
+					return new AccountNotFoundException("Receiver account not found");
+				});
+
+		// Enhanced switch for account status validation
+		validateAccountActive(sourceAccount);
+		validateAccountActive(targetAccount);
 
 		if (sourceAccount.getBalance().compareTo(amount) < 0) {
+			logger.warn("Transfer failed - insufficient funds: sourceUserId={}, balance={}, requested={}",
+					sourceUserId, sourceAccount.getBalance(), amount);
 			logTransaction(sourceAccount.getId(), amount.negate(), "TRANSFER_OUT", targetAccount.getId(), "FAILED",
 					"Insufficient Funds");
-			return ResponseEntity.badRequest().body("Insufficient Funds");
+			throw new InsufficientFundsException();
 		}
 
 		sourceAccount.setBalance(sourceAccount.getBalance().subtract(amount));
@@ -113,12 +170,28 @@ public class TransactionController {
 		logTransaction(sourceAccount.getId(), amount.negate(), "TRANSFER_OUT", targetAccount.getId(), "SUCCESS", null);
 		logTransaction(targetAccount.getId(), amount, "TRANSFER_IN", sourceAccount.getId(), "SUCCESS", null);
 
+		logger.info("Transfer successful: from userId={} to userId={}, amount={}", sourceUserId, targetUserId, amount);
 		return ResponseEntity.ok("Transfer Successful");
 	}
 
 	@GetMapping("/{accountId}")
 	public ResponseEntity<?> getTransactions(@PathVariable Long accountId) {
+		logger.debug("Fetching transactions for accountId={}", accountId);
 		return ResponseEntity.ok(transactionLogRepo.findByAccountId(accountId));
+	}
+
+	// Enhanced Switch Expression (Java 14+) for account status validation
+	private void validateAccountActive(Account account) {
+		String statusMessage = switch (account.getStatus()) {
+			case ACTIVE -> null;
+			case LOCKED -> "LOCKED";
+			case CLOSED -> "CLOSED";
+		};
+
+		if (statusMessage != null) {
+			logger.warn("Account not active: accountId={}, status={}", account.getId(), statusMessage);
+			throw new AccountNotActiveException(account.getId(), statusMessage);
+		}
 	}
 
 	private void logTransaction(Long accountId, BigDecimal amount, String type, Long relatedAccountId, String status,
@@ -134,6 +207,6 @@ public class TransactionController {
 
 		transactionLogRepo.save(log);
 
-		System.out.println("LOG SAVED: " + type + " | " + amount + " | " + status);
+		logger.info("Transaction logged: type={}, amount={}, status={}, accountId={}", type, amount, status, accountId);
 	}
 }

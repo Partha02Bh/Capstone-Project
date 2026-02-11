@@ -93,6 +93,261 @@
   text-align: center;
 }
 
+/* --- Validation Errors --- */
+.input-error {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15) !important;
+}
+
+.error-msg {
+  display: block;
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
+  animation: fadeInError 0.3s ease;
+}
+
+@keyframes fadeInError {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Disabled Button --- */
+.btn-primary:disabled {
+  background: #a0a0a0;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* --- Modal Overlay --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-box {
+  background: white;
+  border-radius: 20px;
+  padding: 45px 40px 35px;
+  text-align: center;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- Animated Cross (Error) --- */
+.cross-circle {
+  width: 90px;
+  height: 90px;
+  position: relative;
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+.cross-circle .background {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e74c3c, #ff6b6b);
+  position: absolute;
+  animation: scaleIn 0.3s ease;
+}
+
+.cross-circle .cross {
+  border-radius: 5px;
+  position: relative;
+  height: 90px;
+  width: 90px;
+}
+
+.cross-circle .cross:after,
+.cross-circle .cross:before {
+  content: '';
+  height: 55px;
+  width: 7px;
+  background: white;
+  position: absolute;
+  left: 41.5px;
+  top: 17.5px;
+  border-radius: 5px;
+  opacity: 0;
+}
+
+.cross-circle .cross.draw:after {
+  animation: crossScaleAfter 0.4s ease forwards;
+  animation-delay: 200ms;
+}
+
+.cross-circle .cross.draw:before {
+  animation: crossScaleBefore 0.4s ease forwards;
+  animation-delay: 400ms;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes crossScaleAfter {
+  0% {
+    transform: rotate(45deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate(45deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes crossScaleBefore {
+  0% {
+    transform: rotate(-45deg) scale(0);
+    opacity: 0;
+  }
+
+  100% {
+    transform: rotate(-45deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* --- Info Circle (OTP Sent) --- */
+.info-circle {
+  width: 90px;
+  height: 90px;
+  position: relative;
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+.info-circle .background {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0056b3, #00a8cc);
+  position: absolute;
+  animation: scaleIn 0.3s ease;
+}
+
+.info-circle .info-icon {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: white;
+  animation: bounceIn 0.5s ease 0.2s both;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* --- Modal Text --- */
+.modal-box h3 {
+  margin: 20px 0 12px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.modal-box.error h3 {
+  color: #e74c3c;
+}
+
+.modal-box.info h3 {
+  color: #0056b3;
+}
+
+.modal-box p {
+  color: #666;
+  font-size: 15px;
+  margin-bottom: 28px;
+  line-height: 1.6;
+  padding: 0 10px;
+}
+
+/* --- Modal Button --- */
+.modal-close-btn {
+  padding: 12px 36px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0056b3, #00a8cc);
+  color: white;
+  transition: all 0.3s ease;
+  letter-spacing: 0.3px;
+}
+
+.modal-close-btn:hover {
+  background: linear-gradient(135deg, #004494, #0090b0);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 86, 179, 0.35);
+}
+
 /* Responsiveness */
 @media (max-width: 768px) {
   .login-card {

@@ -55,4 +55,8 @@ export class ApiService {
   getTransactions(accountId: any) {
     return this.http.get<any[]>(`${this.baseUrl}/transactions/${accountId}`, this.getHeaders());
   }
+
+  getUserName(userId: any) {
+    return this.http.get<any>(`${this.baseUrl}/users/${userId}/name`, this.getHeaders());
+  }
 }

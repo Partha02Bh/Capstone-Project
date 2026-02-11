@@ -92,17 +92,59 @@
         </div>
 
         <!-- INPUT MODES -->
-        <div *ngIf="modalType !== 'MESSAGE' && modalType !== 'PROFILE'">
+        <div *ngIf="modalType !== 'MESSAGE' && modalType !== 'PROFILE' && modalType !== 'TRANSFER_CONFIRM'">
+          <!-- Sender Info for Transfer -->
+          <div class="sender-info" *ngIf="modalType === 'TRANSFER'">
+            <div class="sender-badge">📤 Sending From</div>
+            <div class="sender-details">
+              <span class="sender-name">{{ user?.fullName }}</span>
+              <span class="sender-account">A/C •••• {{ account?.accountNumber | slice:-4 }}</span>
+              <span class="sender-balance">Balance: ${{ account?.balance | number:'1.2-2' }}</span>
+            </div>
+          </div>
+
           <!-- Transfer Target Input -->
           <div class="form-group" *ngIf="modalType === 'TRANSFER'">
             <label>Recipient User ID</label>
-            <input type="text" [(ngModel)]="targetUserId" placeholder="Enter User ID">
+            <input type="text" [(ngModel)]="targetUserId" placeholder="Enter User ID" (blur)="lookupReceiver()"
+              (keyup.enter)="lookupReceiver()">
+            <div class="receiver-info" *ngIf="receiverName">
+              <span class="receiver-found">✅ Receiver: <strong>{{ receiverName }}</strong></span>
+            </div>
+            <span class="error-msg" *ngIf="receiverError">{{ receiverError }}</span>
+            <span class="lookup-loading" *ngIf="lookingUpReceiver">🔍 Looking up...</span>
           </div>
 
           <!-- Amount Input -->
           <div class="form-group">
             <label>Amount (USD)</label>
-            <input type="number" [(ngModel)]="transactionAmount" placeholder="Enter amount">
+            <input type="text" [(ngModel)]="amountInput" placeholder="Enter amount" (input)="validateAmount()"
+              (blur)="validateAmount()" [class.input-error]="amountError">
+            <span class="error-msg" *ngIf="amountError">{{ amountError }}</span>
+          </div>
+        </div>
+
+        <!-- TRANSFER CONFIRMATION STEP -->
+        <div *ngIf="modalType === 'TRANSFER_CONFIRM'" class="confirm-summary">
+          <div class="summary-row">
+            <div class="summary-label">From</div>
+            <div class="summary-value">
+              <strong>{{ user?.fullName }}</strong>
+              <span>A/C •••• {{ account?.accountNumber | slice:-4 }}</span>
+            </div>
+          </div>
+          <div class="summary-divider"><span>➡️</span></div>
+          <div class="summary-row">
+            <div class="summary-label">To</div>
+            <div class="summary-value">
+              <strong>{{ receiverName }}</strong>
+              <span>User ID: {{ targetUserId }}</span>
+            </div>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-row highlight">
+            <div class="summary-label">Amount</div>
+            <div class="summary-value amount">${{ transactionAmount | number:'1.2-2' }}</div>
           </div>
         </div>
 
@@ -130,12 +172,25 @@
 
       <div class="modal-footer">
 
-        <!-- Footer for Actions -->
-        <ng-container
-          *ngIf="modalType !== 'MESSAGE' && modalType !== 'PROFILE' && modalType !== 'SUCCESS' && modalType !== 'FAILURE'">
+        <!-- Footer for Deposit / Withdraw -->
+        <ng-container *ngIf="modalType === 'DEPOSIT' || modalType === 'WITHDRAW'">
           <button class="btn-cancel" (click)="closeModal()">Cancel</button>
-          <button class="btn-confirm" (click)="onSubmit()">Confirm</button>
+          <button class="btn-confirm" (click)="onSubmit()" [disabled]="!isAmountValid">Confirm</button>
         </ng-container>
+
+        <!-- Footer for Transfer (Step 1 → Review) -->
+        <ng-container *ngIf="modalType === 'TRANSFER'">
+          <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+          <button class="btn-confirm" (click)="showTransferConfirm()"
+            [disabled]="!isAmountValid || !targetUserId || !receiverName">Review Transfer</button>
+        </ng-container>
+
+        <!-- Footer for Transfer Confirm (Step 2 → Send) -->
+        <ng-container *ngIf="modalType === 'TRANSFER_CONFIRM'">
+          <button class="btn-cancel" (click)="backToTransfer()">← Back</button>
+          <button class="btn-confirm" (click)="onSubmit()">Send Now</button>
+        </ng-container>
+
         <button class="btn-cancel" (click)="closeModal()"
           *ngIf="modalType === 'SUCCESS' || modalType === 'FAILURE'">Close</button>
 

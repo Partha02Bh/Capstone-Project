@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { ApiService } from '../api.service';
 import { Router } from '@angular/router';
 
@@ -15,11 +15,21 @@ export class OwnerComponent implements OnInit {
   constructor(private api: ApiService, private router: Router) { }
 
   ngOnInit() {
+    // Prevent back navigation — push duplicate state
+    history.pushState(null, '', location.href);
+
     this.api.getAllTransactions().subscribe((data: any) => {
       this.allTransactions = data.sort((a: any, b: any) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
     });
+  }
+
+  // Back button pressed → invalidate session → hard redirect to login
+  @HostListener('window:popstate', ['$event'])
+  onPopState(event: any) {
+    localStorage.clear();
+    window.location.href = '/login';
   }
 
   get filteredTransactions() {

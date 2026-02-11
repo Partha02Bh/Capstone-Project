@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { ApiService } from '../api.service';
 import { Router } from '@angular/router';
 
@@ -16,9 +16,14 @@ export class DashboardComponent implements OnInit {
 
   // Modal State
   showModal = false;
-  modalType: 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER' | 'MESSAGE' | 'PROFILE' | 'SUCCESS' | 'FAILURE' = 'DEPOSIT';
+  modalType: 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER' | 'TRANSFER_CONFIRM' | 'MESSAGE' | 'PROFILE' | 'SUCCESS' | 'FAILURE' = 'DEPOSIT';
   transactionAmount: number | null = null;
+  amountInput: string = '';
+  amountError: string = '';
   targetUserId: string = '';
+  receiverName: string = '';
+  receiverError: string = '';
+  lookingUpReceiver: boolean = false;
 
   // Message/Success Modal State
   modalTitle: string = '';
@@ -28,6 +33,9 @@ export class DashboardComponent implements OnInit {
   constructor(private api: ApiService, private router: Router) { }
 
   ngOnInit(): void {
+    // Prevent back navigation — push a duplicate state
+    history.pushState(null, '', location.href);
+
     const userId = localStorage.getItem('userId');
 
     if (!userId) {
@@ -37,6 +45,13 @@ export class DashboardComponent implements OnInit {
     }
 
     this.loadData(userId);
+  }
+
+  // Back button pressed → invalidate session → hard redirect to login
+  @HostListener('window:popstate', ['$event'])
+  onPopState(event: any) {
+    localStorage.clear();
+    window.location.href = '/login';
   }
 
   loadData(userId: any) {
@@ -74,7 +89,12 @@ export class DashboardComponent implements OnInit {
     this.modalType = type;
     this.showModal = true;
     this.transactionAmount = null;
+    this.amountInput = '';
+    this.amountError = '';
     this.targetUserId = '';
+    this.receiverName = '';
+    this.receiverError = '';
+    this.lookingUpReceiver = false;
     this.modalTitle = type; // Default title
   }
 
@@ -120,6 +140,125 @@ export class DashboardComponent implements OnInit {
     this.showModal = false;
   }
 
+  // --- Amount Validation ---
+  validateAmount(): void {
+    const val = this.amountInput.trim();
+    if (!val) {
+      this.amountError = 'Amount is required';
+      this.transactionAmount = null;
+      return;
+    }
+    if (!/^\d+(\.\d{1,2})?$/.test(val)) {
+      this.amountError = 'Amount must be a valid number (no letters or special characters)';
+      this.transactionAmount = null;
+      return;
+    }
+    const num = parseFloat(val);
+    if (num === 0) {
+      this.amountError = 'Amount cannot be zero';
+      this.transactionAmount = null;
+      return;
+    }
+    if (num < 0) {
+      this.amountError = 'Amount cannot be negative';
+      this.transactionAmount = null;
+      return;
+    }
+
+    if (this.modalType === 'DEPOSIT') {
+      if (num < 100) {
+        this.amountError = 'Minimum deposit amount is $100';
+        this.transactionAmount = null;
+        return;
+      }
+      if (num > 10000) {
+        this.amountError = 'Maximum deposit amount is $10,000';
+        this.transactionAmount = null;
+        return;
+      }
+    }
+    if (this.modalType === 'WITHDRAW') {
+      if (num < 100) {
+        this.amountError = 'Minimum withdrawal amount is $100';
+        this.transactionAmount = null;
+        return;
+      }
+      if (num > 10000) {
+        this.amountError = 'Maximum withdrawal amount is $10,000';
+        this.transactionAmount = null;
+        return;
+      }
+    }
+    if (this.modalType === 'TRANSFER') {
+      if (num < 100) {
+        this.amountError = 'Minimum transfer amount is $100';
+        this.transactionAmount = null;
+        return;
+      }
+      if (num > 10000) {
+        this.amountError = 'Maximum transfer amount is $10,000';
+        this.transactionAmount = null;
+        return;
+      }
+    }
+
+    this.amountError = '';
+    this.transactionAmount = num;
+  }
+
+  get isAmountValid(): boolean {
+    const val = this.amountInput.trim();
+    if (!val || !/^\d+(\.\d{1,2})?$/.test(val)) return false;
+    const num = parseFloat(val);
+    if (num <= 0) return false;
+    if (this.modalType === 'DEPOSIT' && (num < 100 || num > 10000)) return false;
+    if (this.modalType === 'WITHDRAW' && (num < 100 || num > 10000)) return false;
+    if (this.modalType === 'TRANSFER' && (num < 100 || num > 10000)) return false;
+    return true;
+  }
+
+  // --- Receiver Lookup ---
+  lookupReceiver(): void {
+    const id = this.targetUserId.trim();
+    this.receiverName = '';
+    this.receiverError = '';
+    if (!id) return;
+
+    // Don't look up yourself
+    if (this.user && id === String(this.user.id)) {
+      this.receiverError = 'Cannot transfer to yourself';
+      return;
+    }
+
+    this.lookingUpReceiver = true;
+    this.api.getUserName(id).subscribe({
+      next: (res: any) => {
+        this.receiverName = res.fullName;
+        this.receiverError = '';
+        this.lookingUpReceiver = false;
+      },
+      error: () => {
+        this.receiverName = '';
+        this.receiverError = 'User not found';
+        this.lookingUpReceiver = false;
+      }
+    });
+  }
+
+  // --- Transfer Confirmation Flow ---
+  showTransferConfirm() {
+    this.validateAmount();
+    if (this.amountError || !this.transactionAmount) return;
+    if (!this.targetUserId || !this.receiverName) return;
+    this.modalType = 'TRANSFER_CONFIRM';
+    this.modalTitle = 'Confirm Transfer';
+  }
+
+  backToTransfer() {
+    this.modalType = 'TRANSFER';
+    this.modalTitle = 'TRANSFER';
+  }
+
   // Submit Transaction
   onSubmit() {
     if (this.modalType === 'MESSAGE' || this.modalType === 'SUCCESS' || this.modalType === 'FAILURE') {
@@ -127,9 +266,12 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    if (!this.transactionAmount || this.transactionAmount <= 0) {
-      this.showFailure("Invalid Amount");
-      return;
+    // For TRANSFER_CONFIRM, skip validation (already validated)
+    if (this.modalType !== 'TRANSFER_CONFIRM') {
+      this.validateAmount();
+      if (this.amountError || !this.transactionAmount || this.transactionAmount <= 0) {
+        return;
+      }
     }
 
     if (this.modalType === 'DEPOSIT') {
@@ -152,7 +294,7 @@ export class DashboardComponent implements OnInit {
           error: () => this.showFailure("Insufficient Funds")
         });
     }
-    else if (this.modalType === 'TRANSFER') {
+    else if (this.modalType === 'TRANSFER' || this.modalType === 'TRANSFER_CONFIRM') {
       if (!this.targetUserId) {
         this.showFailure("Missing Target ID");
         return;

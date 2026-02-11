@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import com.example.demo.enums.AccountStatus;
+import com.example.demo.exception.InsufficientFundsException;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -38,7 +39,7 @@ public class Account {
 		if (this.balance == null)
 			this.balance = BigDecimal.ZERO;
 		if (this.balance.compareTo(amount) < 0) {
-			throw new RuntimeException("Insufficient Funds");
+			throw new InsufficientFundsException();
 		}
 		this.balance = this.balance.subtract(amount);
 	}
