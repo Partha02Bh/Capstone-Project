@@ -16,7 +16,7 @@ export class DashboardComponent implements OnInit {
 
   // Modal State
   showModal = false;
-  modalType: 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER' | 'TRANSFER_CONFIRM' | 'MESSAGE' | 'PROFILE' | 'SUCCESS' | 'FAILURE' = 'DEPOSIT';
+  modalType: 'DEPOSIT' | 'DEPOSIT_CONFIRM' | 'WITHDRAW' | 'WITHDRAW_CONFIRM' | 'TRANSFER' | 'TRANSFER_CONFIRM' | 'MESSAGE' | 'PROFILE' | 'SUCCESS' | 'FAILURE' = 'DEPOSIT';
   transactionAmount: number | null = null;
   amountInput: string = '';
   amountError: string = '';
@@ -245,6 +245,22 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  // --- Deposit Confirmation Flow ---
+  showDepositConfirm() {
+    this.validateAmount();
+    if (this.amountError || !this.transactionAmount) return;
+    this.modalType = 'DEPOSIT_CONFIRM';
+    this.modalTitle = 'Confirm Deposit';
+  }
+
+  // --- Withdraw Confirmation Flow ---
+  showWithdrawConfirm() {
+    this.validateAmount();
+    if (this.amountError || !this.transactionAmount) return;
+    this.modalType = 'WITHDRAW_CONFIRM';
+    this.modalTitle = 'Confirm Withdrawal';
+  }
+
   // --- Transfer Confirmation Flow ---
   showTransferConfirm() {
     this.validateAmount();
@@ -254,9 +270,19 @@ export class DashboardComponent implements OnInit {
     this.modalTitle = 'Confirm Transfer';
   }
 
+  backToDeposit() {
+    this.modalType = 'DEPOSIT';
+    this.modalTitle = 'Deposit';
+  }
+
+  backToWithdraw() {
+    this.modalType = 'WITHDRAW';
+    this.modalTitle = 'Withdraw';
+  }
+
   backToTransfer() {
     this.modalType = 'TRANSFER';
-    this.modalTitle = 'TRANSFER';
+    this.modalTitle = 'Transfer';
   }
 
   // Submit Transaction
@@ -266,8 +292,8 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    // For TRANSFER_CONFIRM, skip validation (already validated)
-    if (this.modalType !== 'TRANSFER_CONFIRM') {
+    // For CONFIRM states, skip validation (already validated)
+    if (this.modalType !== 'TRANSFER_CONFIRM' && this.modalType !== 'WITHDRAW_CONFIRM' && this.modalType !== 'DEPOSIT_CONFIRM') {
       this.validateAmount();
       if (this.amountError || !this.transactionAmount || this.transactionAmount <= 0) {
         return;
@@ -275,6 +301,9 @@ export class DashboardComponent implements OnInit {
     }
 
     if (this.modalType === 'DEPOSIT') {
+      this.showDepositConfirm();
+    }
+    else if (this.modalType === 'DEPOSIT_CONFIRM') {
       this.api.post('/transactions/deposit', { userId: this.user.id, amount: this.transactionAmount })
         .subscribe({
           next: () => {
@@ -285,6 +314,9 @@ export class DashboardComponent implements OnInit {
         });
     }
     else if (this.modalType === 'WITHDRAW') {
+      this.showWithdrawConfirm();
+    }
+    else if (this.modalType === 'WITHDRAW_CONFIRM') {
       this.api.post('/transactions/withdraw', { userId: this.user.id, amount: this.transactionAmount })
         .subscribe({
           next: () => {
@@ -294,7 +326,10 @@ export class DashboardComponent implements OnInit {
           error: () => this.showFailure("Insufficient Funds")
         });
     }
-    else if (this.modalType === 'TRANSFER' || this.modalType === 'TRANSFER_CONFIRM') {
+    else if (this.modalType === 'TRANSFER') {
+      this.showTransferConfirm();
+    }
+    else if (this.modalType === 'TRANSFER_CONFIRM') {
       if (!this.targetUserId) {
         this.showFailure("Missing Target ID");
         return;

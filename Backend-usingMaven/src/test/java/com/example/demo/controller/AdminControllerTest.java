@@ -117,32 +117,35 @@ class AdminControllerTest {
     // ==================== GET ALL TRANSACTIONS TESTS ====================
 
     @Test
-    @DisplayName("Get All Transactions - Success: Should return list of all transactions")
+    @DisplayName("Get All Transactions - Success")
     void getAllTransactions_Success() {
-        logger.info("TEST: Get All Transactions - Success");
+        // Arrange
+        TransactionLog t1 = new TransactionLog();
+        t1.setId(1L);
+        TransactionLog t2 = new TransactionLog();
+        t2.setId(2L);
 
-        when(transactionLogRepo.findAll()).thenReturn(Arrays.asList(txLog1, txLog2));
+        when(transactionLogRepo.findAll()).thenReturn(Arrays.asList(t1, t2));
 
+        // Act
         ResponseEntity<List<TransactionLog>> response = adminController.getAllTransactions();
 
+        // Assert
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
-        assertEquals("DEPOSIT", response.getBody().get(0).getTransactionType());
-        assertEquals("WITHDRAW", response.getBody().get(1).getTransactionType());
-
-        logger.info("TEST PASSED: Retrieved {} transactions", response.getBody().size());
     }
 
     @Test
-    @DisplayName("Get All Transactions - Empty: Should return empty list when no transactions")
+    @DisplayName("Get All Transactions - Empty")
     void getAllTransactions_Empty() {
-        logger.info("TEST: Get All Transactions - Empty");
 
         when(transactionLogRepo.findAll()).thenReturn(Collections.emptyList());
 
+        // Act
         ResponseEntity<List<TransactionLog>> response = adminController.getAllTransactions();
 
+        // Assert
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isEmpty());

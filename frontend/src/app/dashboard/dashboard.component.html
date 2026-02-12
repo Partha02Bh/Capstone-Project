@@ -92,7 +92,8 @@
         </div>
 
         <!-- INPUT MODES -->
-        <div *ngIf="modalType !== 'MESSAGE' && modalType !== 'PROFILE' && modalType !== 'TRANSFER_CONFIRM'">
+        <div
+          *ngIf="modalType !== 'MESSAGE' && modalType !== 'PROFILE' && modalType !== 'TRANSFER_CONFIRM' && modalType !== 'WITHDRAW_CONFIRM'">
           <!-- Sender Info for Transfer -->
           <div class="sender-info" *ngIf="modalType === 'TRANSFER'">
             <div class="sender-badge">📤 Sending From</div>
@@ -148,6 +149,40 @@
           </div>
         </div>
 
+        <!-- WITHDRAW CONFIRMATION STEP -->
+        <div *ngIf="modalType === 'WITHDRAW_CONFIRM'" class="confirm-summary">
+          <div class="summary-row">
+            <div class="summary-label">Source</div>
+            <div class="summary-value">
+              <strong>{{ user?.fullName }}</strong>
+              <span>A/C •••• {{ account?.accountNumber | slice:-4 }}</span>
+            </div>
+          </div>
+          <div class="summary-divider"><span>💸</span></div>
+          <div class="summary-row highlight">
+            <div class="summary-label">Withdraw Amount</div>
+            <div class="summary-value amount negative">-${{ transactionAmount | number:'1.2-2' }}</div>
+          </div>
+          <p class="summary-note">Funds will be deducted immediately.</p>
+        </div>
+
+        <!-- DEPOSIT CONFIRMATION STEP -->
+        <div *ngIf="modalType === 'DEPOSIT_CONFIRM'" class="confirm-summary">
+          <div class="summary-row">
+            <div class="summary-label">Target</div>
+            <div class="summary-value">
+              <strong>{{ user?.fullName }}</strong>
+              <span>A/C •••• {{ account?.accountNumber | slice:-4 }}</span>
+            </div>
+          </div>
+          <div class="summary-divider"><span>💰</span></div>
+          <div class="summary-row highlight">
+            <div class="summary-label">Deposit Amount</div>
+            <div class="summary-value amount positive">+${{ transactionAmount | number:'1.2-2' }}</div>
+          </div>
+          <p class="summary-note">Funds will be available immediately.</p>
+        </div>
+
         <!-- SUCCESS MODE -->
         <div *ngIf="modalType === 'SUCCESS'" class="success-content">
           <div class="checkmark-circle">
@@ -172,10 +207,29 @@
 
       <div class="modal-footer">
 
-        <!-- Footer for Deposit / Withdraw -->
-        <ng-container *ngIf="modalType === 'DEPOSIT' || modalType === 'WITHDRAW'">
+        <!-- Footer for Deposit -->
+        <ng-container *ngIf="modalType === 'DEPOSIT'">
           <button class="btn-cancel" (click)="closeModal()">Cancel</button>
-          <button class="btn-confirm" (click)="onSubmit()" [disabled]="!isAmountValid">Confirm</button>
+          <button class="btn-confirm" (click)="showDepositConfirm()" [disabled]="!isAmountValid">Review Deposit</button>
+        </ng-container>
+
+        <!-- Footer for Deposit Confirm -->
+        <ng-container *ngIf="modalType === 'DEPOSIT_CONFIRM'">
+          <button class="btn-cancel" (click)="backToDeposit()">← Back</button>
+          <button class="btn-confirm" (click)="onSubmit()">Confirm Deposit</button>
+        </ng-container>
+
+        <!-- Footer for Withdraw (Step 1) -->
+        <ng-container *ngIf="modalType === 'WITHDRAW'">
+          <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+          <button class="btn-confirm" (click)="showWithdrawConfirm()" [disabled]="!isAmountValid">Review
+            Withdrawal</button>
+        </ng-container>
+
+        <!-- Footer for Withdraw Confirm (Step 2) -->
+        <ng-container *ngIf="modalType === 'WITHDRAW_CONFIRM'">
+          <button class="btn-cancel" (click)="backToWithdraw()">← Back</button>
+          <button class="btn-confirm" (click)="onSubmit()">Confirm Withdrawal</button>
         </ng-container>
 
         <!-- Footer for Transfer (Step 1 → Review) -->

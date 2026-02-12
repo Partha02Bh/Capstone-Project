@@ -17,11 +17,12 @@ export class OwnerComponent implements OnInit {
   ngOnInit() {
     // Prevent back navigation — push duplicate state
     history.pushState(null, '', location.href);
+    this.fetchTransactions();
+  }
 
-    this.api.getAllTransactions().subscribe((data: any) => {
-      this.allTransactions = data.sort((a: any, b: any) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
+  fetchTransactions() {
+    this.api.getAllTransactions().subscribe((response: any) => {
+      this.allTransactions = response;
     });
   }
 

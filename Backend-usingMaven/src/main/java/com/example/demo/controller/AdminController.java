@@ -22,13 +22,11 @@ public class AdminController {
     @Autowired
     private TransactionLogRepository transactionLogRepo;
 
-  
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userRepo.findAll());
     }
 
-  
     @GetMapping("/transactions")
     public ResponseEntity<List<TransactionLog>> getAllTransactions() {
         return ResponseEntity.ok(transactionLogRepo.findAll());

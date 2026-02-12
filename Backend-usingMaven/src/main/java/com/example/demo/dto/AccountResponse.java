@@ -18,5 +18,5 @@ public class AccountResponse {
     private String accountNumber;
     private BigDecimal balance;
     private AccountStatus status;
-    private String ownerName;
+    private UserResponse user;
 }

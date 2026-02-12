@@ -89,13 +89,13 @@ class MainControllerTest {
         assertEquals("1000000001", result.getAccountNumber());
         assertEquals(new BigDecimal("5000.00"), result.getBalance());
         assertEquals(AccountStatus.ACTIVE, result.getStatus());
-        assertEquals("Partha", result.getOwnerName());
+        assertEquals("Partha", result.getUser().getFullName());
 
         logger.info("""
                 TEST PASSED: AccountResponse returned
                   accountId=%d, accountNumber=%s, balance=%s, status=%s, ownerName=%s
                 """.formatted(result.getAccountId(), result.getAccountNumber(),
-                result.getBalance(), result.getStatus(), result.getOwnerName()));
+                result.getBalance(), result.getStatus(), result.getUser().getFullName()));
     }
 
     @Test

@@ -26,20 +26,20 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         logger.info("========== Starting database seeding ==========");
-        seedUser("admin", "admin123", "ROLE_ADMIN", "Bank Manager", "admin@bank.com", "1000000000",
+        seedUser("admin", "admin123", "ROLE_ADMIN", "Bank Manager", "admin@bank.com", "9000000000", "1000000000",
                 new java.math.BigDecimal("0.00"));
-        seedUser("Partha", "Partha123", "ROLE_USER", "Partha", "partha@gmail.com", "1000000001",
+        seedUser("Partha", "Partha123", "ROLE_USER", "Partha", "partha@gmail.com", "9000000001", "1000000001",
                 new java.math.BigDecimal("500000.00"));
-        seedUser("Prakhar", "Prakhar123", "ROLE_USER", "Prakhar", "prakhar@gmail.com", "1000000002",
+        seedUser("Prakhar", "Prakhar123", "ROLE_USER", "Prakhar", "prakhar@gmail.com", "9000000002", "1000000002",
                 new java.math.BigDecimal("300000.00"));
-        seedUser("Nidhi", "Nidhi123", "ROLE_USER", "Nidhi", "nidhi@gmail.com", "1000000003",
+        seedUser("Nidhi", "Nidhi123", "ROLE_USER", "Nidhi", "nidhi@gmail.com", "9000000003", "1000000003",
                 new java.math.BigDecimal("400000.00"));
-        seedUser("Krishna", "Krishna123", "ROLE_USER", "Krishna", "krishna@gmail.com", "1000000004",
+        seedUser("Krishna", "Krishna123", "ROLE_USER", "Krishna", "krishna@gmail.com", "9000000004", "1000000004",
                 new java.math.BigDecimal("200000.00"));
         logger.info("========== Database seeding completed ==========");
     }
 
-    private void seedUser(String username, String rawPassword, String role, String fullName, String email,
+    private void seedUser(String username, String rawPassword, String role, String fullName, String email, String phone,
             String accountNumber, java.math.BigDecimal balance) {
         User user = userRepository.findByUsername(username).orElse(null);
 
@@ -50,7 +50,7 @@ public class DataSeeder implements CommandLineRunner {
             user.setRole(role);
             user.setFullName(fullName);
             user.setEmail(email);
-            user.setPhone("1234567890"); // Dummy phone
+            user.setPhone(phone);
             user.setIsActive(true);
             user = userRepository.save(user);
             logger.info("Created user: username={}, role={}", username, role);
@@ -71,6 +71,12 @@ public class DataSeeder implements CommandLineRunner {
                 user.setPassword(passwordEncoder.encode(rawPassword));
                 changed = true;
                 logger.info("Updated password for user: username={}", username);
+            }
+
+            // Check phone
+            if (user.getPhone() == null || !user.getPhone().equals(phone)) {
+                user.setPhone(phone);
+                changed = true;
             }
 
             if (changed) {

@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.AccountResponse;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RegisterRequest;
+
 import com.example.demo.entity.Account;
 import com.example.demo.entity.User;
 import com.example.demo.exception.AccountNotFoundException;
@@ -61,12 +62,25 @@ public class MainController {
                 .orElseThrow(() -> new AccountNotFoundException(userId));
 
         // Return AccountResponse DTO instead of raw entity
+        User user = account.getUser();
+        com.example.demo.dto.UserResponse userResponse = null;
+        if (user != null) {
+            userResponse = com.example.demo.dto.UserResponse.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .fullName(user.getFullName())
+                    .email(user.getEmail())
+                    .phone(user.getPhone())
+                    .role(user.getRole())
+                    .build();
+        }
+
         AccountResponse response = AccountResponse.builder()
                 .accountId(account.getId())
                 .accountNumber(account.getAccountNumber())
                 .balance(account.getBalance())
                 .status(account.getStatus())
-                .ownerName(account.getUser() != null ? account.getUser().getFullName() : null)
+                .user(userResponse)
                 .build();
 
         logger.info("Account retrieved: accountId={}, balance={}", account.getId(), account.getBalance());
