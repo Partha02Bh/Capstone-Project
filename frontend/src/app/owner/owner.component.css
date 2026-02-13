@@ -139,6 +139,16 @@ th {
   letter-spacing: 1px;
 }
 
+.status-badge.transfer_in {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-badge.transfer_out {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
 tr {
   transition: all 0.2s ease;
 }

@@ -9,7 +9,7 @@ import com.example.demo.exception.InvalidAmountException;
 import com.example.demo.exception.SelfTransferException;
 import com.example.demo.repositories.AccountRepository;
 import com.example.demo.repositories.TransactionLogRepository;
-import com.example.demo.repositories.UserRepository;
+// import com.example.demo.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +20,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @RestController
 @RequestMapping("/api/transactions")
+@Transactional
 public class TransactionController {
 
 	private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
@@ -29,8 +32,8 @@ public class TransactionController {
 	@Autowired
 	private AccountRepository accountRepo;
 
-	@Autowired
-	private UserRepository userRepo;
+	// @Autowired
+	// private UserRepository userRepo;
 
 	@Autowired
 	private TransactionLogRepository transactionLogRepo;

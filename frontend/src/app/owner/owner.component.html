@@ -62,7 +62,9 @@
                   <span class="status-badge" [ngClass]="{
                     'deposit': t.transactionType === 'DEPOSIT',
                     'withdraw': t.transactionType === 'WITHDRAW',
-                    'transfer': t.transactionType === 'TRANSFER'
+                    'transfer': t.transactionType === 'TRANSFER',
+                    'transfer_in': t.transactionType === 'TRANSFER_IN',
+                    'transfer_out': t.transactionType === 'TRANSFER_OUT'
                   }">{{ t.transactionType }}</span>
                 </td>
 
