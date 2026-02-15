@@ -32,19 +32,24 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
+		http.csrf(csrf -> csrf.disable())
+				.headers(headers -> headers.frameOptions(frame -> frame.disable())) // Allow frames for H2 Console
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(auth -> auth
 
 						.requestMatchers("/register", "/api/register", "/login", "/api/login", "/api/auth/**",
 								"/api/verify", "/api/dashboard", "/dashboard", "/api/account/*",
-								"/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
+								"/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+								"/h2-console/**") // Allow H2 Console
 						.permitAll()
 
 						.requestMatchers("/api/admin/**").hasRole("ADMIN")
 
 						.anyRequest().authenticated())
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // No
-																												// Cookies!
+
+				// .sessionManagement(session ->
+				// session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Commented
+				// out to allow H2 Console sessions
 				.authenticationProvider(authenticationProvider())
 				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
