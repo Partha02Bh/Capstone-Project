@@ -947,3 +947,199 @@ h2 {
   font-weight: 500;
   animation: fadeInError 0.3s ease;
 }
+
+
+
+
+/* ── PASTE THIS AT THE BOTTOM OF dashboard.component.css ─────────────────── */
+
+/* Rewards Section */
+.rewards-section {
+  width: 100%;
+  max-width: 700px;
+}
+
+.rewards-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+/* Points Summary Card */
+.rewards-card {
+  background: linear-gradient(135deg, #6c47ff 0%, #a78bfa 100%);
+  border-radius: 20px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: white;
+  box-shadow: 0 8px 24px rgba(108, 71, 255, 0.25);
+}
+
+.rewards-badge {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.rewards-info {
+  flex: 1;
+}
+
+.rewards-points {
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rewards-label {
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+.rewards-hint {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.rewards-history-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.rewards-history-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Rewards History Table */
+.rewards-history {
+  margin-top: 16px;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+}
+
+.rewards-empty {
+  padding: 32px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+
+.rewards-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.rewards-table thead tr {
+  background: #f8f7ff;
+}
+
+.rewards-table th {
+  padding: 14px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #6c47ff;
+  font-size: 13px;
+  border-bottom: 1px solid #eee;
+}
+
+.rewards-table td {
+  padding: 14px 20px;
+  color: #444;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.rewards-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rewards-table tbody tr:hover {
+  background: #faf9ff;
+}
+
+.points-badge {
+  background: #f0ebff;
+  color: #6c47ff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* Reward hint inside Transfer modal */
+.transfer-reward-hint {
+  background: #f0ebff;
+  color: #6c47ff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-top: 10px;
+  border-left: 3px solid #6c47ff;
+}
+
+/* Reward note in Transfer confirm summary */
+.summary-reward-note {
+  background: #f0ebff;
+  color: #6c47ff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-top: 14px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Reward points inside Profile modal */
+.profile-rewards {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0ebff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-top: 16px;
+}
+
+.profile-rewards-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6c47ff;
+}
+
+.profile-rewards-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #6c47ff;
+}
+
+
+.navbar-points {
+  background: #f0ebff;
+  color: #6c47ff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navbar-points:hover {
+  background: #6c47ff;
+  color: white;
+}

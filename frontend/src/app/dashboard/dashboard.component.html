@@ -4,6 +4,9 @@
   <nav class="navbar">
     <div class="logo">🏦 SecureBank</div>
     <div class="user-info" *ngIf="user">
+      <div class="navbar-points" (click)="toggleRewardHistory()">
+        ⭐ {{ totalRewardPoints }} pts
+      </div>
       <button class="profile-btn" (click)="openProfile()">
         👤 {{ user.fullName }}
       </button>
@@ -19,7 +22,6 @@
       <p>Loading your secure account...</p>
     </div>
 
-    <!-- Main Content Grid -> Flex Column for Simplicity -->
     <div *ngIf="account" class="main-grid">
 
       <!-- Credit Card -->
@@ -28,7 +30,7 @@
         <div class="credit-card">
           <div class="card-chip"></div>
           <div class="card-balance-label">Current Balance</div>
-          <div class="card-balance">${{ account.balance | number:'1.2-2' }}</div>
+          <div class="card-balance">₹{{ account.balance | number:'1.2-2' }}</div>
           <div class="card-number">
             **** **** **** {{ account.accountNumber | slice:-4 }}
           </div>
@@ -61,14 +63,54 @@
         </div>
       </div>
 
+      <!-- REWARDS SECTION -->
+      <div class="rewards-section">
+        <h2>🎁 My Rewards</h2>
+
+        <div class="rewards-card">
+          <div class="rewards-badge">⭐</div>
+          <div class="rewards-info">
+            <div class="rewards-points">{{ totalRewardPoints }}</div>
+            <div class="rewards-label">Total Reward Points</div>
+            <div class="rewards-hint">Earn 1 point for every ₹100 transferred</div>
+          </div>
+          <button class="rewards-history-btn" (click)="toggleRewardHistory()">
+            {{ showRewardHistory ? 'Hide History ▲' : 'View History ▼' }}
+          </button>
+        </div>
+
+        <div class="rewards-history" *ngIf="showRewardHistory">
+          <div *ngIf="rewardHistory.length === 0" class="rewards-empty">
+            <p>No rewards yet. Transfer more than ₹100 to earn points!</p>
+          </div>
+          <table *ngIf="rewardHistory.length > 0" class="rewards-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Transfer Amount</th>
+                <th>Points Earned</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let reward of rewardHistory; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>{{ reward.awardedAt }}</td>
+                <td>₹{{ reward.transactionAmount | number:'1.2-2' }}</td>
+                <td><span class="points-badge">+{{ reward.pointsEarned }} pts</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- CUSTOM MODAL -->
+  <!-- MODAL -->
   <div class="modal-overlay" *ngIf="showModal">
     <div class="modal-content">
 
-      <!-- HEADER -->
       <div class="modal-header" [class.error-header]="isError">
         <h3>{{ modalTitle }}</h3>
         <button class="close-btn" (click)="closeModal()">×</button>
@@ -76,12 +118,10 @@
 
       <div class="modal-body">
 
-        <!-- MESSAGE MODE -->
         <div *ngIf="modalType === 'MESSAGE'" class="message-content">
           <p>{{ modalMessage }}</p>
         </div>
 
-        <!-- PROFILE MODE -->
         <div *ngIf="modalType === 'PROFILE'" class="profile-content">
           <div class="profile-avatar">👤</div>
           <h4>{{ user?.fullName }}</h4>
@@ -89,22 +129,24 @@
           <p class="profile-detail"><strong>Email:</strong> {{ user?.email }}</p>
           <p class="profile-detail"><strong>Phone:</strong> {{ user?.phone }}</p>
           <p class="profile-detail"><strong>Role:</strong> {{ user?.role }}</p>
+          <div class="profile-rewards">
+            <span class="profile-rewards-label">⭐ Reward Points</span>
+            <span class="profile-rewards-value">{{ totalRewardPoints }}</span>
+          </div>
         </div>
 
-        <!-- INPUT MODES -->
         <div
-          *ngIf="modalType !== 'MESSAGE' && modalType !== 'PROFILE' && modalType !== 'TRANSFER_CONFIRM' && modalType !== 'WITHDRAW_CONFIRM'">
-          <!-- Sender Info for Transfer -->
+          *ngIf="modalType !== 'MESSAGE' && modalType !== 'PROFILE' && modalType !== 'TRANSFER_CONFIRM' && modalType !== 'WITHDRAW_CONFIRM' && modalType !== 'DEPOSIT_CONFIRM' && modalType !== 'SUCCESS' && modalType !== 'FAILURE'">
+
           <div class="sender-info" *ngIf="modalType === 'TRANSFER'">
             <div class="sender-badge">📤 Sending From</div>
             <div class="sender-details">
               <span class="sender-name">{{ user?.fullName }}</span>
               <span class="sender-account">A/C •••• {{ account?.accountNumber | slice:-4 }}</span>
-              <span class="sender-balance">Balance: ${{ account?.balance | number:'1.2-2' }}</span>
+              <span class="sender-balance">Balance: ₹{{ account?.balance | number:'1.2-2' }}</span>
             </div>
           </div>
 
-          <!-- Transfer Target Input -->
           <div class="form-group" *ngIf="modalType === 'TRANSFER'">
             <label>Recipient User ID</label>
             <input type="text" [(ngModel)]="targetUserId" placeholder="Enter User ID" (blur)="lookupReceiver()"
@@ -116,16 +158,19 @@
             <span class="lookup-loading" *ngIf="lookingUpReceiver">🔍 Looking up...</span>
           </div>
 
-          <!-- Amount Input -->
           <div class="form-group">
-            <label>Amount (USD)</label>
+            <label>Amount (₹)</label>
             <input type="text" [(ngModel)]="amountInput" placeholder="Enter amount" (input)="validateAmount()"
               (blur)="validateAmount()" [class.input-error]="amountError">
             <span class="error-msg" *ngIf="amountError">{{ amountError }}</span>
           </div>
+
+          <div class="transfer-reward-hint"
+            *ngIf="modalType === 'TRANSFER' && isAmountValid && transactionAmount !== null && transactionAmount > 100">
+            ⭐ You'll earn <strong>{{ rewardPointsPreview }} reward point(s)</strong> for this transfer
+          </div>
         </div>
 
-        <!-- TRANSFER CONFIRMATION STEP -->
         <div *ngIf="modalType === 'TRANSFER_CONFIRM'" class="confirm-summary">
           <div class="summary-row">
             <div class="summary-label">From</div>
@@ -145,11 +190,13 @@
           <div class="summary-divider"></div>
           <div class="summary-row highlight">
             <div class="summary-label">Amount</div>
-            <div class="summary-value amount">${{ transactionAmount | number:'1.2-2' }}</div>
+            <div class="summary-value amount">₹{{ transactionAmount | number:'1.2-2' }}</div>
+          </div>
+          <div class="summary-reward-note" *ngIf="transactionAmount !== null && transactionAmount > 100">
+            ⭐ +{{ rewardPointsPreview }} reward point(s) will be added
           </div>
         </div>
 
-        <!-- WITHDRAW CONFIRMATION STEP -->
         <div *ngIf="modalType === 'WITHDRAW_CONFIRM'" class="confirm-summary">
           <div class="summary-row">
             <div class="summary-label">Source</div>
@@ -161,12 +208,11 @@
           <div class="summary-divider"><span>💸</span></div>
           <div class="summary-row highlight">
             <div class="summary-label">Withdraw Amount</div>
-            <div class="summary-value amount negative">-${{ transactionAmount | number:'1.2-2' }}</div>
+            <div class="summary-value amount negative">-₹{{ transactionAmount | number:'1.2-2' }}</div>
           </div>
           <p class="summary-note">Funds will be deducted immediately.</p>
         </div>
 
-        <!-- DEPOSIT CONFIRMATION STEP -->
         <div *ngIf="modalType === 'DEPOSIT_CONFIRM'" class="confirm-summary">
           <div class="summary-row">
             <div class="summary-label">Target</div>
@@ -178,12 +224,11 @@
           <div class="summary-divider"><span>💰</span></div>
           <div class="summary-row highlight">
             <div class="summary-label">Deposit Amount</div>
-            <div class="summary-value amount positive">+${{ transactionAmount | number:'1.2-2' }}</div>
+            <div class="summary-value amount positive">+₹{{ transactionAmount | number:'1.2-2' }}</div>
           </div>
           <p class="summary-note">Funds will be available immediately.</p>
         </div>
 
-        <!-- SUCCESS MODE -->
         <div *ngIf="modalType === 'SUCCESS'" class="success-content">
           <div class="checkmark-circle">
             <div class="background"></div>
@@ -193,7 +238,6 @@
           <p>{{ modalMessage }}</p>
         </div>
 
-        <!-- FAILURE MODE -->
         <div *ngIf="modalType === 'FAILURE'" class="failure-content">
           <div class="cross-circle">
             <div class="background"></div>
@@ -206,40 +250,33 @@
       </div>
 
       <div class="modal-footer">
-
-        <!-- Footer for Deposit -->
         <ng-container *ngIf="modalType === 'DEPOSIT'">
           <button class="btn-cancel" (click)="closeModal()">Cancel</button>
           <button class="btn-confirm" (click)="showDepositConfirm()" [disabled]="!isAmountValid">Review Deposit</button>
         </ng-container>
 
-        <!-- Footer for Deposit Confirm -->
         <ng-container *ngIf="modalType === 'DEPOSIT_CONFIRM'">
           <button class="btn-cancel" (click)="backToDeposit()">← Back</button>
           <button class="btn-confirm" (click)="onSubmit()">Confirm Deposit</button>
         </ng-container>
 
-        <!-- Footer for Withdraw (Step 1) -->
         <ng-container *ngIf="modalType === 'WITHDRAW'">
           <button class="btn-cancel" (click)="closeModal()">Cancel</button>
           <button class="btn-confirm" (click)="showWithdrawConfirm()" [disabled]="!isAmountValid">Review
             Withdrawal</button>
         </ng-container>
 
-        <!-- Footer for Withdraw Confirm (Step 2) -->
         <ng-container *ngIf="modalType === 'WITHDRAW_CONFIRM'">
           <button class="btn-cancel" (click)="backToWithdraw()">← Back</button>
           <button class="btn-confirm" (click)="onSubmit()">Confirm Withdrawal</button>
         </ng-container>
 
-        <!-- Footer for Transfer (Step 1 → Review) -->
         <ng-container *ngIf="modalType === 'TRANSFER'">
           <button class="btn-cancel" (click)="closeModal()">Cancel</button>
           <button class="btn-confirm" (click)="showTransferConfirm()"
             [disabled]="!isAmountValid || !targetUserId || !receiverName">Review Transfer</button>
         </ng-container>
 
-        <!-- Footer for Transfer Confirm (Step 2 → Send) -->
         <ng-container *ngIf="modalType === 'TRANSFER_CONFIRM'">
           <button class="btn-cancel" (click)="backToTransfer()">← Back</button>
           <button class="btn-confirm" (click)="onSubmit()">Send Now</button>
@@ -247,9 +284,9 @@
 
         <button class="btn-cancel" (click)="closeModal()"
           *ngIf="modalType === 'SUCCESS' || modalType === 'FAILURE'">Close</button>
-
       </div>
+
     </div>
   </div>
+
 </div>
-```

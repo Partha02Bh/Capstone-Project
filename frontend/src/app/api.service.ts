@@ -20,7 +20,6 @@ export class ApiService {
     };
   }
 
-
   login(u: string, p: string) {
     return this.http.post(`${this.baseUrl}/login`, { username: u, password: p }, { responseType: 'text' });
   }
@@ -47,7 +46,6 @@ export class ApiService {
     return this.post('/transactions/transfer', body);
   }
 
-
   getAllTransactions() {
     return this.http.get<any[]>(`${this.baseUrl}/admin/transactions`, this.getHeaders());
   }
@@ -58,5 +56,11 @@ export class ApiService {
 
   getUserName(userId: any) {
     return this.http.get<any>(`${this.baseUrl}/users/${userId}/name`, this.getHeaders());
+  }
+
+  // ── REWARD MODULE ────────────────────────────────────────────────────────
+  // Returns: { userId, totalPoints, history: [...] }
+  getRewards(userId: any) {
+    return this.http.get<any>(`${this.baseUrl}/rewards/${userId}`, this.getHeaders());
   }
 }

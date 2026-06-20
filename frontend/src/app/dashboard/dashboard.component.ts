@@ -14,6 +14,11 @@ export class DashboardComponent implements OnInit {
   user: any = null;
   transactions: any[] = [];
 
+  // Reward State                                                         // NEW
+  totalRewardPoints: number = 0;                                          // NEW
+  rewardHistory: any[] = [];                                              // NEW
+  showRewardHistory: boolean = false;                                     // NEW
+
   // Modal State
   showModal = false;
   modalType: 'DEPOSIT' | 'DEPOSIT_CONFIRM' | 'WITHDRAW' | 'WITHDRAW_CONFIRM' | 'TRANSFER' | 'TRANSFER_CONFIRM' | 'MESSAGE' | 'PROFILE' | 'SUCCESS' | 'FAILURE' = 'DEPOSIT';
@@ -33,7 +38,6 @@ export class DashboardComponent implements OnInit {
   constructor(private api: ApiService, private router: Router) { }
 
   ngOnInit(): void {
-    // Prevent back navigation — push a duplicate state
     history.pushState(null, '', location.href);
 
     const userId = localStorage.getItem('userId');
@@ -47,7 +51,6 @@ export class DashboardComponent implements OnInit {
     this.loadData(userId);
   }
 
-  // Back button pressed → invalidate session → hard redirect to login
   @HostListener('window:popstate', ['$event'])
   onPopState(event: any) {
     localStorage.clear();
@@ -57,11 +60,9 @@ export class DashboardComponent implements OnInit {
   loadData(userId: any) {
     this.api.getAccount(userId).subscribe({
       next: (res: any) => {
-        console.log("Dashboard Data:", res);
         this.account = res;
         this.user = res.user;
 
-        // Fetch Transactions
         if (this.account && this.account.id) {
           this.api.getTransactions(this.account.id).subscribe({
             next: (txs: any) => {
@@ -72,6 +73,17 @@ export class DashboardComponent implements OnInit {
             error: (err: any) => console.error("Error fetching transactions:", err)
           });
         }
+
+        // Load rewards for this user                                     // NEW
+        if (this.user && this.user.id) {                                  // NEW
+          this.api.getRewards(this.user.id).subscribe({                   // NEW
+            next: (res: any) => {                                         // NEW
+              this.totalRewardPoints = res.totalPoints;                   // NEW
+              this.rewardHistory = res.history;                           // NEW
+            },                                                            // NEW
+            error: (err: any) => console.error("Error fetching rewards:", err) // NEW
+          });                                                             // NEW
+        }                                                                 // NEW
       },
       error: (err) => {
         console.error("Error fetching data:", err);
@@ -84,7 +96,11 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  // Open Action Modal
+  // Toggle reward history panel                                          // NEW
+  toggleRewardHistory() {                                                 // NEW
+    this.showRewardHistory = !this.showRewardHistory;                     // NEW
+  }                                                                       // NEW
+
   openAction(type: 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER') {
     this.modalType = type;
     this.showModal = true;
@@ -95,7 +111,7 @@ export class DashboardComponent implements OnInit {
     this.receiverName = '';
     this.receiverError = '';
     this.lookingUpReceiver = false;
-    this.modalTitle = type; // Default title
+    this.modalTitle = type;
   }
 
   openProfile() {
@@ -104,7 +120,6 @@ export class DashboardComponent implements OnInit {
     this.modalTitle = 'My Profile';
   }
 
-  // Show Message Modal (Error or Info)
   showMessage(title: string, message: string, isError: boolean = false) {
     this.modalType = 'MESSAGE';
     this.modalTitle = title;
@@ -113,19 +128,16 @@ export class DashboardComponent implements OnInit {
     this.showModal = true;
   }
 
-  // Show Success Animation Modal
   showSuccess(message: string) {
     this.modalType = 'SUCCESS';
     this.modalTitle = 'Success';
     this.modalMessage = message;
     this.showModal = true;
-    // Auto-close after 2 seconds
     setTimeout(() => {
       this.closeModal();
     }, 2000);
   }
 
-  // Show Failure Animation Modal
   showFailure(message: string) {
     this.modalType = 'FAILURE';
     this.modalTitle = 'Failed';
@@ -133,14 +145,13 @@ export class DashboardComponent implements OnInit {
     this.showModal = true;
     setTimeout(() => {
       this.closeModal();
-    }, 2500); // Slightly longer for error reading
+    }, 2500);
   }
 
   closeModal() {
     this.showModal = false;
   }
 
-  // --- Amount Validation ---
   validateAmount(): void {
     const val = this.amountInput.trim();
     if (!val) {
@@ -164,46 +175,26 @@ export class DashboardComponent implements OnInit {
       this.transactionAmount = null;
       return;
     }
-
     if (this.modalType === 'DEPOSIT') {
-      if (num < 100) {
-        this.amountError = 'Minimum deposit amount is $100';
-        this.transactionAmount = null;
-        return;
-      }
-      if (num > 10000) {
-        this.amountError = 'Maximum deposit amount is $10,000';
-        this.transactionAmount = null;
-        return;
-      }
+      if (num < 100) { this.amountError = 'Minimum deposit amount is ₹100'; this.transactionAmount = null; return; }
+      if (num > 10000) { this.amountError = 'Maximum deposit amount is ₹10,000'; this.transactionAmount = null; return; }
     }
     if (this.modalType === 'WITHDRAW') {
-      if (num < 100) {
-        this.amountError = 'Minimum withdrawal amount is $100';
-        this.transactionAmount = null;
-        return;
-      }
-      if (num > 10000) {
-        this.amountError = 'Maximum withdrawal amount is $10,000';
-        this.transactionAmount = null;
-        return;
-      }
+      if (num < 100) { this.amountError = 'Minimum withdrawal amount is ₹100'; this.transactionAmount = null; return; }
+      if (num > 10000) { this.amountError = 'Maximum withdrawal amount is ₹10,000'; this.transactionAmount = null; return; }
     }
     if (this.modalType === 'TRANSFER') {
-      if (num < 100) {
-        this.amountError = 'Minimum transfer amount is $100';
-        this.transactionAmount = null;
-        return;
-      }
-      if (num > 10000) {
-        this.amountError = 'Maximum transfer amount is $10,000';
-        this.transactionAmount = null;
-        return;
-      }
+      if (num < 100) { this.amountError = 'Minimum transfer amount is ₹100'; this.transactionAmount = null; return; }
+      if (num > 10000) { this.amountError = 'Maximum transfer amount is ₹10,000'; this.transactionAmount = null; return; }
     }
-
     this.amountError = '';
     this.transactionAmount = num;
+  }
+
+  // Preview reward points before submitting transfer
+  get rewardPointsPreview(): number {
+    if (!this.transactionAmount || this.transactionAmount <= 100) return 0;
+    return Math.floor(this.transactionAmount / 100);
   }
 
   get isAmountValid(): boolean {
@@ -217,19 +208,15 @@ export class DashboardComponent implements OnInit {
     return true;
   }
 
-  // --- Receiver Lookup ---
   lookupReceiver(): void {
     const id = this.targetUserId.trim();
     this.receiverName = '';
     this.receiverError = '';
     if (!id) return;
-
-    // Don't look up yourself
     if (this.user && id === String(this.user.id)) {
       this.receiverError = 'Cannot transfer to yourself';
       return;
     }
-
     this.lookingUpReceiver = true;
     this.api.getUserName(id).subscribe({
       next: (res: any) => {
@@ -245,7 +232,6 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  // --- Deposit Confirmation Flow ---
   showDepositConfirm() {
     this.validateAmount();
     if (this.amountError || !this.transactionAmount) return;
@@ -253,7 +239,6 @@ export class DashboardComponent implements OnInit {
     this.modalTitle = 'Confirm Deposit';
   }
 
-  // --- Withdraw Confirmation Flow ---
   showWithdrawConfirm() {
     this.validateAmount();
     if (this.amountError || !this.transactionAmount) return;
@@ -261,7 +246,6 @@ export class DashboardComponent implements OnInit {
     this.modalTitle = 'Confirm Withdrawal';
   }
 
-  // --- Transfer Confirmation Flow ---
   showTransferConfirm() {
     this.validateAmount();
     if (this.amountError || !this.transactionAmount) return;
@@ -270,93 +254,53 @@ export class DashboardComponent implements OnInit {
     this.modalTitle = 'Confirm Transfer';
   }
 
-  backToDeposit() {
-    this.modalType = 'DEPOSIT';
-    this.modalTitle = 'Deposit';
-  }
+  backToDeposit() { this.modalType = 'DEPOSIT'; this.modalTitle = 'Deposit'; }
+  backToWithdraw() { this.modalType = 'WITHDRAW'; this.modalTitle = 'Withdraw'; }
+  backToTransfer() { this.modalType = 'TRANSFER'; this.modalTitle = 'Transfer'; }
 
-  backToWithdraw() {
-    this.modalType = 'WITHDRAW';
-    this.modalTitle = 'Withdraw';
-  }
-
-  backToTransfer() {
-    this.modalType = 'TRANSFER';
-    this.modalTitle = 'Transfer';
-  }
-
-  // Submit Transaction
   onSubmit() {
     if (this.modalType === 'MESSAGE' || this.modalType === 'SUCCESS' || this.modalType === 'FAILURE') {
       this.closeModal();
       return;
     }
-
-    // For CONFIRM states, skip validation (already validated)
     if (this.modalType !== 'TRANSFER_CONFIRM' && this.modalType !== 'WITHDRAW_CONFIRM' && this.modalType !== 'DEPOSIT_CONFIRM') {
       this.validateAmount();
-      if (this.amountError || !this.transactionAmount || this.transactionAmount <= 0) {
-        return;
-      }
+      if (this.amountError || !this.transactionAmount || this.transactionAmount <= 0) return;
     }
 
-    if (this.modalType === 'DEPOSIT') {
-      this.showDepositConfirm();
-    }
+    if (this.modalType === 'DEPOSIT') { this.showDepositConfirm(); }
     else if (this.modalType === 'DEPOSIT_CONFIRM') {
       this.api.post('/transactions/deposit', { userId: this.user.id, amount: this.transactionAmount })
         .subscribe({
-          next: () => {
-            this.loadData(this.user.id);
-            this.showSuccess("Deposit Successful!");
-          },
+          next: () => { this.loadData(this.user.id); this.showSuccess("Deposit Successful!"); },
           error: () => this.showFailure("Deposit Failed")
         });
     }
-    else if (this.modalType === 'WITHDRAW') {
-      this.showWithdrawConfirm();
-    }
+    else if (this.modalType === 'WITHDRAW') { this.showWithdrawConfirm(); }
     else if (this.modalType === 'WITHDRAW_CONFIRM') {
       this.api.post('/transactions/withdraw', { userId: this.user.id, amount: this.transactionAmount })
         .subscribe({
-          next: () => {
-            this.loadData(this.user.id);
-            this.showSuccess("Withdrawal Successful!");
-          },
+          next: () => { this.loadData(this.user.id); this.showSuccess("Withdrawal Successful!"); },
           error: () => this.showFailure("Insufficient Funds")
         });
     }
-    else if (this.modalType === 'TRANSFER') {
-      this.showTransferConfirm();
-    }
+    else if (this.modalType === 'TRANSFER') { this.showTransferConfirm(); }
     else if (this.modalType === 'TRANSFER_CONFIRM') {
-      if (!this.targetUserId) {
-        this.showFailure("Missing Target ID");
-        return;
-      }
+      if (!this.targetUserId) { this.showFailure("Missing Target ID"); return; }
       this.api.transfer(this.user.id, this.targetUserId, this.transactionAmount).subscribe({
-        next: (res) => {
-          this.loadData(this.user.id);
-          this.showSuccess("Transfer Successful!");
-        },
-        error: (err) => {
-          console.error(err);
-          this.showFailure(this.getErrorMessage(err) || "Transfer Failed");
-        }
+        next: () => { this.loadData(this.user.id); this.showSuccess("Transfer Successful!"); },
+        error: (err) => { this.showFailure(this.getErrorMessage(err) || "Transfer Failed"); }
       });
     }
   }
 
-  // Helper to parse error messages
   private getErrorMessage(err: any): string {
     if (err.error) {
       if (typeof err.error === 'string') {
         try {
           const parsed = JSON.parse(err.error);
           return parsed.message || parsed.error || err.error;
-        } catch (e) {
-          return err.error;
-        }
+        } catch (e) { return err.error; }
       } else if (typeof err.error === 'object') {
         return err.error.message || err.error.error || "Unknown Error";
       }
